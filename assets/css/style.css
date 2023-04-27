@@ -1,6 +1,6 @@
 body {
-    background-color: #101010;
-    color: #ffffff
+    background-color: #101010; /* change background color here */
+    color: #ffffff /* and font color here */
 }
 
 .highlight-green {
@@ -13,16 +13,7 @@ body {
     font-weight: bold;
 }
 
-.row {
-    display: flex;
-}
-
-.column {
-    flex: 33.33%;
-    padding: 5px;
-}
-
-.centered {
+.fixcross {
     position: fixed;
     top: 50%;
     left: 50%;
