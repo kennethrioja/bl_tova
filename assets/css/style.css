@@ -1,0 +1,45 @@
+body {
+    background-color: #101010;
+    color: #ffffff
+}
+
+.highlight-green {
+    color: #008000;
+    font-weight: bold;
+}
+
+.highlight-red {
+    color: #ff0000;
+    font-weight: bold;
+}
+
+.row {
+    display: flex;
+}
+
+.column {
+    flex: 33.33%;
+    padding: 5px;
+}
+
+.centered {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 30px;
+}
+
+.up {
+    position: fixed;
+    top: 33.33%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.down {
+    position: fixed;
+    top: 66.66%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
