@@ -7,8 +7,8 @@
 // ############################
 // based on Denkinger Sylvie's 'TOVA_parameters_2023' excel sheet 
 
-var pres_time = 100; // stimulus presentation time
-var isi = 1900; // inter stimulus interval
+var pres_time = 100; // CHANGE TO 100 !!!stimulus presentation time
+var isi = 1900; // CHANGE TO 1900 !!! inter stimulus interval
 var soa = pres_time + isi; // duration bw the onset of two consecutive stimuli
 var resp_time = 600; // time given to answer
 // var o_w = window.outerWidth; // check https://www.jspsych.org/7.2/plugins/virtual-chinrest/
@@ -17,23 +17,24 @@ var resp_time = 600; // time given to answer
 var stim_width = 100; // in px, check https://www.jspsych.org/7.2/plugins/resize/
 var tova_up = `
 <div class="up"><img src='assets/img/square.png' style="width:${stim_width}px"></img></div>
-<div class="fixcross">+</div>
 `;
 var tova_down = `
-<div class="fixcross">+</div>
 <div class="down"><img src='assets/img/square.png' style="width:${stim_width}px"></img></div>
 `;
 // background color = black, see 'assets/css/style.css'
 var fixation_cross = '<div class="fixcross">+</div>'; // to change its size, see 'assets/css/style.css'
 var block_type = ["SA", "IC"]; // fixed order, sustained attention then inhibitory control
+// Now for the blocks and target-to-non-target ratio :  
+// 1) either you want it purely random, in that case you modifiy the four variables below
 var p_go_sa = 0.33; // percentage of go trials for SA block
 var p_nogo_sa = 1 - p_go_sa; // percentage of nogo trials for SA block
 var p_go_ic = 0.66; // percentage of go trials for IC block
 var p_nogo_ic = 1 - p_go_ic; // percentage of nogo trials for IC block
+// 2) either you want the same succession throughout the participants, in that case enter 0 for no-go and 1 fo go separated by coma between the brackets below, e.g., [0,1] will give a block of 2 trials, first being a no-go, second being a go.
+var fixed_block_sa = [0, 0, 0, 1, 0, 0, 0, 0, 1, 1]; // to change
+var fixed_block_ic = [1, 1, 0, 1, 1, 1, 1, 0, 1, 0]; // to change
 // var pres_order // fixed, random sequence ?
 var n_block_trials = 40; // number of trials per block
-var fixed_block_sa = [0,0,0,1,0,0,0,0,1,1]; // to change
-var fixed_block_ic = [1,1,0,1,1,1,1,0,1,0]; // to change
 
 // ##########################
 // ### initialize jsPsych ###
@@ -76,11 +77,13 @@ timeline.push(review_fullscreenOn);
 var stimuli = [
     { // represents 0 in practice_array
         stimulus: tova_down,
+        stim_img: 'squaredown',
         correct_response: 'null',
         condition: 'NoGo'
     },
     { // represents 1 in practice_array
         stimulus: tova_up,
+        stim_img: 'squareup',
         correct_response: ' ',
         condition: 'Go'
     }
@@ -90,7 +93,10 @@ var image = {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: jsPsych.timelineVariable('stimulus'),
     choices: [' '],
-    trial_duration: 2000,
+    stimulus_duration: pres_time,
+    trial_duration: soa,
+    response_ends_trial: false,
+    prompt : fixation_cross,
     data: {
         task: 'response',
         correct_response: jsPsych.timelineVariable('correct_response'),
@@ -104,22 +110,14 @@ var image = {
         }
     }
 };
-var fixation = {
-    type: jsPsychHtmlKeyboardResponse,
-    stimulus: '<div class="fixcross">+</div>',
-    choices: "NO_KEYS",
-    trial_duration: isi,
-    data: {
-        task: 'fixation'
-    }
-};
+
 // define test procedure
 var test_procedure = {
-    timeline: [image, fixation],
+    timeline: [image],
     timeline_variables: stimuli,
     sample: {
         type: 'custom',
-        fn: function () { 
+        fn: function () {
             return fixed_block_sa;
         }
     },
@@ -141,7 +139,7 @@ timeline.push(browsercheck);
 
 var debrief_block = {
     type: jsPsychHtmlKeyboardResponse,
-    stimulus: function () {
+    prompt: function () {
 
         var trials = jsPsych.data.get().filter({ task: 'response' });
         var go_trials = trials.filter({ condition: 'Go' });
@@ -193,9 +191,9 @@ timeline.push({
     type: jsPsychFullscreen,
     fullscreen_mode: false,
     delay_after: 0,
-    on_finish: function(data){
+    on_finish: function (data) {
         console.log(jsPsych.data.get().csv());
-        jsPsych.data.get().localSave('csv','mydata.csv');
+        jsPsych.data.get().localSave('csv', 'mydata.csv');
     }
 });
 
