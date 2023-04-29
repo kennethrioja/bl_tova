@@ -1,0 +1,52 @@
+author : Kenneth Rioja
+description : data dictionnary of variables from the bl_tova csv
+legend :
+variable_name
+	type
+	description
+----------------------------------------------------------------
+success, timeout, failed_[image, audio, video]
+	https://www.jspsych.org/7.0/plugins/preload/#data-generated
+trial_type
+	string
+	The name of the plugin used to run the trial (https://www.jspsych.org/7.0/overview/plugins/#data-collected-by-all-plugins)
+trial_index
+	int
+	THIS IS NOT THE REAL  TRIAL INDEX it is the index of the current trial across the whole experiment (https://www.jspsych.org/7.0/overview/plugins/#data-collected-by-all-plugins)
+time_elapsed
+	int
+	The number of milliseconds between the start of the experiment and when the trial ended. (https://www.jspsych.org/7.0/overview/plugins/#data-collected-by-all-plugins)
+internal_node_id
+	string
+	A string identifier for the current TimelineNode. (https://www.jspsych.org/7.0/overview/plugins/#data-collected-by-all-plugins)
+real_trial_index
+	int
+	created manually - (find '*MODIFIED*' in jspsych.js), this comes from the 'internal_node_id' latest value. It is the block trial index beginning by 1.
+rt
+	int array
+	rt's from all reponses during the soa
+stimulus
+	NA
+response
+	string array
+	array containing the keys pressed for each trial (restricted to space bar, see 'choices' in bl_tova.js)
+block
+	string
+	block name : sa = sustained attention, ic = inhibitory control
+condition
+	string
+	condition : Go = target, NoGo = non-target
+expected_key
+	string
+	expected key press : null = no press, ' ' = space bar
+expected_response
+	int
+	expected response, mirroring the condition : 0 = expected to refrain, 1 = expected to press
+effective_response
+	int
+	response given by participant : 0 = refrained, 1 = pressed spacebar, 2 = pressed spacebar multiple times
+correct
+	bool
+	whether the trial was correct (TRUE) or incorrect (FALSE)
+width, height, browser, browser_version, mobile, os, fullscreen, vsync_rate
+	https://www.jspsych.org/7.2/plugins/browser-check/#data-generated

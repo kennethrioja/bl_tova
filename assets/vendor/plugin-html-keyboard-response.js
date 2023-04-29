@@ -74,10 +74,10 @@ var jsPsychHtmlKeyboardResponse = (function (jspsych) {
           }
           // draw
           display_element.innerHTML = new_html;
-          // store response
+          // store response *MODIFIED*
           var response = {
-              rt: null,
-              key: null,
+              rt: [],
+              key: [],
           };
           // function to end trial when it is time
           const end_trial = () => {
@@ -87,9 +87,9 @@ var jsPsychHtmlKeyboardResponse = (function (jspsych) {
               if (typeof keyboardListener !== "undefined") {
                   this.jsPsych.pluginAPI.cancelKeyboardResponse(keyboardListener);
               }
-              // gather the data to store for the trial
+              // gather the data to store for the trial *MODIFIED*
               var trial_data = {
-                  rt: response.rt,
+                  rt: response.rt.toString(),
                   stimulus: trial.stimulus,
                   response: response.key,
               };
@@ -104,10 +104,9 @@ var jsPsychHtmlKeyboardResponse = (function (jspsych) {
               // which can be used to provide visual feedback that a response was recorded
               display_element.querySelector("#jspsych-html-keyboard-response-stimulus").className +=
                   " responded";
-              // only record the first response
-              if (response.key == null) {
-                  response = info;
-              }
+              // record all the responses // *MODIFIED*
+              response.rt.push(info.rt);
+              response.key.push(info.key);
               if (trial.response_ends_trial) {
                   end_trial();
               }
@@ -118,7 +117,7 @@ var jsPsychHtmlKeyboardResponse = (function (jspsych) {
                   callback_function: after_response,
                   valid_responses: trial.choices,
                   rt_method: "performance",
-                  persist: false,
+                  persist: true, // *MODIFIED*
                   allow_held_key: false,
               });
           }

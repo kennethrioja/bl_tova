@@ -496,6 +496,7 @@ var jsPsychModule = (function (exports) {
                 trial_index: progress.current_trial_global,
                 time_elapsed: this.jsPsych.getTotalTime(),
                 internal_node_id: this.jsPsych.getCurrentTimelineNodeID(),
+                real_trial_index: parseInt(this.jsPsych.getCurrentTimelineNodeID().split('.')[this.jsPsych.getCurrentTimelineNodeID().split('.').length - 1]) + 1, // *MODIFIED*
             };
             this.allData.push(Object.assign(Object.assign(Object.assign(Object.assign({}, data_object), trial.data), default_data), this.dataProperties));
         }

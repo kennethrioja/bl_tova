@@ -7,10 +7,9 @@
 // ############################
 // based on Denkinger Sylvie's 'TOVA_parameters_2023' excel sheet 
 
-var pres_time = 100; // CHANGE TO 100 !!!stimulus presentation time
-var isi = 1900; // CHANGE TO 1900 !!! inter stimulus interval
-var soa = pres_time + isi; // duration bw the onset of two consecutive stimuli
-var resp_time = 600; // time given to answer
+var pres_time = 100; // stimulus presentation time
+var isi = 1900; // inter stimulus interval
+var soa = pres_time + isi; // duration between the onset of two consecutive stimuli
 // var o_w = window.outerWidth; // check https://www.jspsych.org/7.2/plugins/virtual-chinrest/
 // var o_h = window.outerHeight;
 // var d = Math.sqrt(o_w * o_w + o_h * o_h);
@@ -25,16 +24,32 @@ var tova_down = `
 var fixation_cross = '<div class="fixcross">+</div>'; // to change its size, see 'assets/css/style.css'
 var block_type = ["SA", "IC"]; // fixed order, sustained attention then inhibitory control
 // Now for the blocks and target-to-non-target ratio :  
-// 1) either you want it purely random, in that case you modifiy the four variables below
+// 1) either you want it purely random, in that case you modifiy the variables below
+var n_block_trials = 40; // number of trials per block
 var p_go_sa = 0.33; // percentage of go trials for SA block
 var p_nogo_sa = 1 - p_go_sa; // percentage of nogo trials for SA block
 var p_go_ic = 0.66; // percentage of go trials for IC block
 var p_nogo_ic = 1 - p_go_ic; // percentage of nogo trials for IC block
 // 2) either you want the same succession throughout the participants, in that case enter 0 for no-go and 1 fo go separated by coma between the brackets below, e.g., [0,1] will give a block of 2 trials, first being a no-go, second being a go.
+var test_block = [0,0,1,1];
 var fixed_block_sa = [0, 0, 0, 1, 0, 0, 0, 0, 1, 1]; // to change
 var fixed_block_ic = [1, 1, 0, 1, 1, 1, 1, 0, 1, 0]; // to change
 // var pres_order // fixed, random sequence ?
-var n_block_trials = 40; // number of trials per block
+
+// #####################################
+// ### modifications in plugin files ###
+// #####################################
+// see marks '*MODIFIED*'
+
+// 1) allow the recording of multiple responses during one trial
+// https://github.com/jspsych/jsPsych/discussions/1302
+// file : plugin-html-keyboard-response.js
+
+// 2) change response values, when refrained : response = 0, when pressed spacebar : response = 1
+// file : plugin-html-keyboard-response.js
+
+// 3) creation of 'real_trial_index' column which is the trial_index for each block
+// file : jspsych.js
 
 // ##########################
 // ### initialize jsPsych ###
@@ -42,11 +57,9 @@ var n_block_trials = 40; // number of trials per block
 
 var jsPsych = initJsPsych();
 
-// create timeline
-var timeline = [];
+var timeline = []; // create timeline
 
-// preload the images
-var preload = {
+var preload = { // preload the images
     type: jsPsychPreload,
     images: ['assets/img/square.png', // path from html
         'assets/img/tova_up.png',
@@ -70,21 +83,23 @@ var review_fullscreenOn = {
 };
 timeline.push(review_fullscreenOn);
 
-// ######################
-// ### practice phase ###
-// ######################
-// https://sources.univ-jfc.fr/aobert/SART_jsPsych/-/blob/5b17d65170876e92db918e82b59c4af2820d587a/experiment_v1.6.html
+// #################
+// ### block : SA ###
+// #################
+
 var stimuli = [
     { // represents 0 in practice_array
         stimulus: tova_down,
         stim_img: 'squaredown',
-        correct_response: 'null',
+        expected_key: 'null',
+        expected_response: '0',
         condition: 'NoGo'
     },
     { // represents 1 in practice_array
         stimulus: tova_up,
         stim_img: 'squareup',
-        correct_response: ' ',
+        expected_key: ' ',
+        expected_response: '1',
         condition: 'Go'
     }
 ];
@@ -98,38 +113,48 @@ var image = {
     response_ends_trial: false,
     prompt : fixation_cross,
     data: {
-        task: 'response',
-        correct_response: jsPsych.timelineVariable('correct_response'),
+        block: block_type[0],
+        expected_key: jsPsych.timelineVariable('expected_key'),
         condition: jsPsych.timelineVariable('condition'),
+        expected_response: jsPsych.timelineVariable('expected_response'),
+        effective_response: '', // will be updated after
+
     },
     on_finish: function (data) {
-        if (data.condition == 'Go') {
-            data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
-        } else {
-            data.correct = !jsPsych.pluginAPI.compareKeys(data.response, ' ');
-        }
+        // read data.response (= array of key) to give the right number to effective_response
+        if (data.response.length >= 2) {
+            data.effective_response = 2; // 2 = multiple responses
+          } else {
+            if (data.response[0]) {
+                data.effective_response = 1; // 1 = pressed space
+            } else {
+                data.effective_response = 0; // 0 = refrained
+            }
+          }
+        // compute data.correct
+        data.correct = (data.expected_response == data.effective_response);
     }
 };
 
-// define test procedure
-var test_procedure = {
+var sa = { // define sustained attention block
     timeline: [image],
     timeline_variables: stimuli,
     sample: {
         type: 'custom',
         fn: function () {
-            return fixed_block_sa;
+            return test_block;
         }
     },
 }
-timeline.push(test_procedure);
+timeline.push(sa);
 
 // ####################
 // ### browser data ###
 // ####################
 
 var browsercheck = {
-    type: jsPsychBrowserCheck // allows to have data on screen width, heigth, browser used, see https://www.jspsych.org/7.2/plugins/browser-check/
+    type: jsPsychBrowserCheck, // allows to have data on screen width, heigth, browser used, see https://www.jspsych.org/7.2/plugins/browser-check/
+    skip_features: ['webaudio', 'webcam', 'microphone']
 };
 timeline.push(browsercheck);
 
@@ -141,7 +166,7 @@ var debrief_block = {
     type: jsPsychHtmlKeyboardResponse,
     prompt: function () {
 
-        var trials = jsPsych.data.get().filter({ task: 'response' });
+        var trials = jsPsych.data.get().filter({ block: 'sa' });
         var go_trials = trials.filter({ condition: 'Go' });
         var nogo_trials = trials.filter({ condition: 'NoGo' });
         var correct_trials = trials.filter({ correct: true });
@@ -151,7 +176,7 @@ var debrief_block = {
         var nogo_accuracy = Math.round(correct_nogo_trials.count() / nogo_trials.count() * 100);
         var correct_go_rt = Math.round(correct_go_trials.select('rt').mean());
 
-        return `<p>You responded correctly on ${go_accuracy}% of the ${go_trials.count()} go trials.</p>
+        return `<p>SA : You responded correctly on ${go_accuracy}% of the ${go_trials.count()} go trials.</p>
         <p>Your average response time on correct go trials was ${correct_go_rt}ms.</p>
         <p>You refrained correctly on ${nogo_accuracy}% of the ${nogo_trials.count()} nogo trials.</p>
         <p>Press any key to complete the experiment. Thank you!</p>`;
@@ -162,25 +187,6 @@ var debrief_block = {
     //     jsPsychP.data.get().localSave('csv','mydata.csv');
     //     }
 };
-
-// var debrief_blockP = {
-//     type: jsPsychInstructions,
-//     pages: [
-//         'Good job ! The practice phase is done. Before getting to the task, let’s review one more last time :' +
-//         '<br>' +
-//         '• Press the spacebar as fast as you can, but only when you see the small square presented at the top.' +
-//         '<br>' +
-//         '• When you press the spacebar, only press it once and don’t hold it down.' +
-//         '<br>' +
-//         '• Finally, don’t go too fast or try to guess; take enough time to see where the square is really presented.' +
-//         '<br>' +
-//         '<br>' +
-//         'Press the space bar to begin the experiment.</p>'
-//     ],
-//     allow_backward: false,
-//     show_clickable_nav: true
-// };
-
 timeline.push(debrief_block);
 
 // ############################
@@ -192,8 +198,9 @@ timeline.push({
     fullscreen_mode: false,
     delay_after: 0,
     on_finish: function (data) {
-        console.log(jsPsych.data.get().csv());
-        jsPsych.data.get().localSave('csv', 'mydata.csv');
+        var final = jsPsych.data.get();
+        console.log(final.csv());
+        final.localSave('csv', 'mydata.csv');
     }
 });
 
