@@ -13,7 +13,7 @@ var soa = pres_time + isi; // duration between the onset of two consecutive stim
 // var o_w = window.outerWidth; // check https://www.jspsych.org/7.2/plugins/virtual-chinrest/
 // var o_h = window.outerHeight;
 // var d = Math.sqrt(o_w * o_w + o_h * o_h);
-var stim_width = 100; // in px, check https://www.jspsych.org/7.2/plugins/resize/
+var stim_width = 100; // in px, if needed check https://www.jspsych.org/7.2/plugins/resize/
 var tova_up = `
 <div class="up"><img src='assets/img/square.png' style="width:${stim_width}px"></img></div>
 `;
@@ -32,8 +32,8 @@ var p_go_ic = 0.66; // percentage of go trials for IC block
 var p_nogo_ic = 1 - p_go_ic; // percentage of nogo trials for IC block
 // 2) either you want the same succession throughout the participants, in that case enter 0 for no-go and 1 fo go separated by coma between the brackets below, e.g., [0,1] will give a block of 2 trials, first being a no-go, second being a go.
 var test_block = [0,0,1,1];
-var fixed_block_sa = [0, 0, 0, 1, 0, 0, 0, 0, 1, 1]; // to change
-var fixed_block_ic = [1, 1, 0, 1, 1, 1, 1, 0, 1, 0]; // to change
+var fixed_block_sa = [0,0,0,1,0,0,0,0,0,1,0,1,0,1,0,0,1,0,0,0,1,0,0,1,0,1,0,1,0,0,1,0,0,0,1,0,1,0,1,0];
+var fixed_block_ic = [1,1,1,1,0,1,1,0,1,1,1,0,1,0,1,0,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,0,1,1,0,1,1,1,0,1]; 
 // var pres_order // fixed, random sequence ?
 
 // #####################################
@@ -83,9 +83,9 @@ var review_fullscreenOn = {
 };
 timeline.push(review_fullscreenOn);
 
-// #################
+// ##################
 // ### block : SA ###
-// #################
+// ##################
 
 var stimuli = [
     { // represents 0 in practice_array
@@ -142,7 +142,7 @@ var sa = { // define sustained attention block
     sample: {
         type: 'custom',
         fn: function () {
-            return test_block;
+            return fixed_block_sa;
         }
     },
 }
