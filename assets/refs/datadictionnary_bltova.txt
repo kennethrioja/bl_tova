@@ -26,7 +26,8 @@ rt
 	int array
 	rt's from all reponses during the soa
 stimulus
-	NA
+	string
+	label of the stimulus ('squareup' or 'squaredown'), see 'stim_img' in js script
 response
 	string array
 	array containing the keys pressed for each trial (restricted to space bar, see 'choices' in bl_tova.js)
