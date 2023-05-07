@@ -30,7 +30,9 @@ var fixed_80_block_01_sa = [0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,1,
 ];
 // 0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1,0,1,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,0,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0
 // 0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,1,0,0,0,1
-var fixed_40_block_02_ic = [1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1];
+var fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,1,1,1,1,1];
+// 1,0,1,1,1,1,1,1,0,1,0,1,0,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1
+// 1,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,0,1
 
 // #####################################
 // ### modifications in plugin files ###
@@ -141,30 +143,30 @@ var block_01_sa = {
     },
     sample: {
         type: 'custom',
-        fn: function () { // SA
-            var n_gotrials = 16;
-            var n_nogotrials = 64;
+        fn: function () { // IC
+            var n_gotrials = 32;
+            var n_nogotrials = 8;
             var arr = [];
             function rand50() {
                 return Math.floor(Math.random() * 10) & 1;
             }
             function rand75() { // https://www.geeksforgeeks.org/generate-0-1-25-75-probability/
-                return +!(!rand50() | !rand50());
+                return rand50() | rand50();
             }
-            while (arr.length < 80) {
+            while (arr.length < 40) {
                 var rdm = rand75();
-                if (arr.length == 0) { // first trial is nogo for SA
-                    arr.push(0);
-                    n_nogotrials--;
-                } else if (arr[arr.length - 3] == 1 && arr[arr.length - 2] == 1 && arr[arr.length - 1] == 1 && n_nogotrials > 0) { // not more than 3 go in a row
-                    arr.push(0);
-                    n_nogotrials--;
-                } else if (rdm == 1 && n_gotrials > 0) {
-                    arr.push(rdm);
+                if (arr.length == 0) { // first trial is go for IC
+                    arr.push(1);
+                    n_gotrials--;
+                } else if (arr[arr.length - 2] == 0 && arr[arr.length - 1] == 0 && n_gotrials > 0) { // not more than 2 nogo in a row
+                    arr.push(1);
                     n_gotrials--;
                 } else if (rdm == 0 && n_nogotrials > 0) {
                     arr.push(rdm);
                     n_nogotrials--;
+                } else if (rdm == 1 && n_gotrials > 0) {
+                    arr.push(rdm);
+                    n_gotrials--;
                 }
             }
             console.log(arr.length);
