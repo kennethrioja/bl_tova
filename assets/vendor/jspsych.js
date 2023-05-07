@@ -496,7 +496,7 @@ var jsPsychModule = (function (exports) {
                 trial_index: progress.current_trial_global,
                 time_elapsed: this.jsPsych.getTotalTime(),
                 internal_node_id: this.jsPsych.getCurrentTimelineNodeID(),
-                real_trial_index: parseInt(this.jsPsych.getCurrentTimelineNodeID().split('.')[this.jsPsych.getCurrentTimelineNodeID().split('.').length - 1]) + 1, // *MODIFIED*
+                real_trial_index: this.jsPsych.getRealTrialIndex() // *MODIFIED*
             };
             this.allData.push(Object.assign(Object.assign(Object.assign(Object.assign({}, data_object), trial.data), default_data), this.dataProperties));
         }
@@ -2842,6 +2842,12 @@ var jsPsychModule = (function (exports) {
         }
         getCurrentTimelineNodeID() {
             return this.timeline.activeID();
+        }
+        getRealTrialIndex() { // *MODIFIED*
+            if (this.timeline.activeID().split('.').length == 4) {
+                return (parseInt(this.timeline.activeID().split('.')[this.timeline.activeID().split('.').length - 1]) + 1);
+            }
+            return (0);
         }
         timelineVariable(varname, immediate = false) {
             if (this.internal.call_immediate || immediate === true) {
