@@ -21,7 +21,9 @@ internal_node_id
 	A string identifier for the current TimelineNode. (https://www.jspsych.org/7.0/overview/plugins/#data-collected-by-all-plugins)
 real_trial_index
 	int
-	created manually - (find '*MODIFIED*' in jspsych.js), this comes from the 'internal_node_id' latest value. It is the block trial index beginning by 1.
+	created manually - (find '*MODIFIED*' in jspsych.js), real trials are begining with 1, 0 are the pluggins.
+width, height, browser, browser_version, mobile, os, fullscreen, vsync_rate
+	https://www.jspsych.org/7.2/plugins/browser-check/#data-generated
 rt
 	int array
 	rt's from all reponses during the soa
@@ -49,5 +51,3 @@ effective_response
 correct
 	bool
 	whether the trial was correct (TRUE) or incorrect (FALSE)
-width, height, browser, browser_version, mobile, os, fullscreen, vsync_rate
-	https://www.jspsych.org/7.2/plugins/browser-check/#data-generated
