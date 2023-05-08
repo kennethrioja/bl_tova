@@ -1,6 +1,6 @@
 // Title : JS script for ToVA [TASK]
 // Author : kenneth.rioja@unige.ch
-// Date : 27.04.2023
+// Date : 08.05.2023
 
 // ############################
 // ### experiment variables ###
@@ -22,10 +22,7 @@ var tova_down = `
 `;
 // background color = black, see 'assets/css/style.css'
 var fixation_cross = '<div class="fixcross" id="cross">+</div>'; // to change its size, see 'assets/css/style.css'
-var block_n = 2; // number of blocks
-var block_type = ["SA", "IC"]; // fixed order, sustained attention then inhibitory control
-var test_block = [0, 0, 1, 1]; // enter 0 for no-go and 1 fo go separated by coma between the brackets below, e.g., [0,1] will give a block of 2 trials, first being a no-go, second being a go.
-// var fixed_block_01_sa_40 = [0,0,0,1,0,0,0,0,0,1,0,1,0,1,0,0,1,0,0,0,1,0,0,1,0,1,0,1,0,0,1,0,0,0,1,0,1,0,1,0];
+var block_type = ["SA", "IC"]; // fixed order, sustained attention then inhibitory control. Note : those are the names under the column "block", they are not used for functional code - esthetic only
 var fixed_80_block_01_sa = [0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,1,0,0,0,0,1,0,0,1,0,1,0,0,0,1
 ]; // fixed 80 SA (20% go / 80% nogo) block was computed through this function : lines 145-174 from https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js. 1) Multiple sequences were computed, 2) 3 were selected by hand while having in mind to keep a distributed distribution of 1 across the entire block, 3) the selection of the chosen block was done with SD and DB
 // 0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1,0,1,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,0,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0
@@ -33,7 +30,10 @@ var fixed_80_block_01_sa = [0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,1,
 var fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,1,1,1,1,1]; // fixed 40 IC (80% go / 20% nogo) block was computed through this : lines 145-174 https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js, selection was made the same than for SA.
 // 1,0,1,1,1,1,1,1,0,1,0,1,0,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1
 // 1,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,0,1
-var feedback_color = true; // change to false to prevent from having a colored feedback at the end of each trial, see plugin
+var fixed_blocks_array = [fixed_80_block_01_sa, fixed_40_block_02_ic] // this is the  array on which the code is based
+var feedback_color = true; // change to false to prevent colored feedback at the end of each trial, see plugin-html-keyboard-response.js
+var test_block = [0, 0, 1, 1]; // this is a test_block, only used when coding/testing the tova. Enter 0 for no-go and 1 fo go separated by coma between the brackets below, e.g., [0,1] will give a block of 2 trials, first being a no-go, second being a go.
+
 
 // #####################################
 // ### modifications in plugin files ###
@@ -57,6 +57,12 @@ var feedback_color = true; // change to false to prevent from having a colored f
 var jsPsych = initJsPsych();
 
 var timeline = []; // create timeline
+
+var browsercheck = { // get browser data
+    type: jsPsychBrowserCheck, // allows to have data on screen width, heigth, browser used, see https://www.jspsych.org/7.2/plugins/browser-check/
+    skip_features: ['webaudio', 'webcam', 'microphone']
+};
+timeline.push(browsercheck);
 
 var preload = { // preload the images
     type: jsPsychPreload,
@@ -82,9 +88,9 @@ var review_fullscreenOn = {
 };
 timeline.push(review_fullscreenOn);
 
-// ######################################################################
+// ########################################################################
 // ### define stimuli + their inner variables and trial + its procedure ###
-// ######################################################################
+// ########################################################################
 
 var stimuli = [
     { // represents 0 in practice_array
@@ -135,113 +141,52 @@ var trial = {
     }
 };
 
-// ######################
-// ### 1st block : SA ###
-// ######################
+// ####################################################################
+// ### for loop on fixed_blocks_array to create blocks and feedback ###
+// ####################################################################
 
-var block_01_sa = {
-    timeline_variables: stimuli,
-    timeline: [trial], // needs to be an array
-    on_timeline_start: function () {
-        trial.data.block = block_type[0]; // change block name to block_type[0] (= "SA")
-    },
-    sample: {
-        type: 'custom',
-        fn: function () {
-            return test_block;
-        }
-    },
+for (let i = 0; i < fixed_blocks_array.length; i++){
+    // create block 
+    var block = {
+        timeline_variables: stimuli,
+        timeline: [trial], // needs to be an array
+        on_timeline_start: function () {
+            trial.data.block = block_type[i]; // change block name to block_type[i]
+        },
+        sample: {
+            type: 'custom',
+            fn: function () {
+                return fixed_blocks_array[i];
+            }
+        },
+    }
+    timeline.push(block);
+
+    // debrief block
+    var debrief_block = {
+        type: jsPsychHtmlKeyboardResponse,
+        prompt: function () {
+
+            var trials = jsPsych.data.get().filter({ block: 'SA' });
+            var go_trials = trials.filter({ condition: 'Go' });
+            var nogo_trials = trials.filter({ condition: 'NoGo' });
+            var correct_trials = trials.filter({ correct: true });
+            var correct_go_trials = correct_trials.filter({ condition: 'Go' });
+            var correct_nogo_trials = correct_trials.filter({ condition: 'NoGo' });
+            var go_accuracy = Math.round(correct_go_trials.count() / go_trials.count() * 100);
+            var nogo_accuracy = Math.round(correct_nogo_trials.count() / nogo_trials.count() * 100);
+            var correct_go_rt = Math.round(correct_go_trials.select('rt').mean());
+
+            return `<p>${block_type[i]} : You responded correctly on ${go_accuracy}% of the ${go_trials.count()} go trials.</p>
+            <p>Your average response time on correct go trials was ${correct_go_rt}ms.</p>
+            <p>You refrained correctly on ${nogo_accuracy}% of the ${nogo_trials.count()} nogo trials.</p>
+            <p>ARE YOU READY TO CONTINUE ?</p>
+            <p>Press any key to continue the experiment.</p>`;
+
+        },
+    };
+    timeline.push(debrief_block);
 }
-timeline.push(block_01_sa);
-
-// ########################
-// ### debrief block SA ###
-// ########################
-
-var debrief_block_sa = {
-    type: jsPsychHtmlKeyboardResponse,
-    prompt: function () {
-
-        var trials = jsPsych.data.get().filter({ block: 'SA' });
-        var go_trials = trials.filter({ condition: 'Go' });
-        var nogo_trials = trials.filter({ condition: 'NoGo' });
-        var correct_trials = trials.filter({ correct: true });
-        var correct_go_trials = correct_trials.filter({ condition: 'Go' });
-        var correct_nogo_trials = correct_trials.filter({ condition: 'NoGo' });
-        var go_accuracy = Math.round(correct_go_trials.count() / go_trials.count() * 100);
-        var nogo_accuracy = Math.round(correct_nogo_trials.count() / nogo_trials.count() * 100);
-        var correct_go_rt = Math.round(correct_go_trials.select('rt').mean());
-
-        return `<p>SA : You responded correctly on ${go_accuracy}% of the ${go_trials.count()} go trials.</p>
-        <p>Your average response time on correct go trials was ${correct_go_rt}ms.</p>
-        <p>You refrained correctly on ${nogo_accuracy}% of the ${nogo_trials.count()} nogo trials.</p>
-        <p>ARE YOU READY TO CONTINUE ?</p>
-        <p>Press any key to continue the experiment.</p>`;
-
-    },
-};
-timeline.push(debrief_block_sa);
-
-// ######################
-// ### 2nd block : IC ###
-// ######################
-
-var block_02_ic = {
-    timeline_variables: stimuli,
-    timeline: [trial], // needs to be an array
-    on_timeline_start: function () {
-        trial.data.block = block_type[1]; // change block name to block_type[1] (= "IC")
-    },
-    sample: {
-        type: 'custom',
-        fn: function () {
-            var t = [1, 1, 0, 0];
-            return t;
-        }
-    },
-}
-timeline.push(block_02_ic);
-
-// ########################
-// ### debrief block IC ###
-// ########################
-
-var debrief_block_ic = {
-    type: jsPsychHtmlKeyboardResponse,
-    prompt: function () {
-
-        var trials = jsPsych.data.get().filter({ block: 'IC' });
-        var go_trials = trials.filter({ condition: 'Go' });
-        var nogo_trials = trials.filter({ condition: 'NoGo' });
-        var correct_trials = trials.filter({ correct: true });
-        var correct_go_trials = correct_trials.filter({ condition: 'Go' });
-        var correct_nogo_trials = correct_trials.filter({ condition: 'NoGo' });
-        var go_accuracy = Math.round(correct_go_trials.count() / go_trials.count() * 100);
-        var nogo_accuracy = Math.round(correct_nogo_trials.count() / nogo_trials.count() * 100);
-        var correct_go_rt = Math.round(correct_go_trials.select('rt').mean());
-
-        return `<p>IC : You responded correctly on ${go_accuracy}% of the ${go_trials.count()} go trials.</p>
-        <p>Your average response time on correct go trials was ${correct_go_rt}ms.</p>
-        <p>You refrained correctly on ${nogo_accuracy}% of the ${nogo_trials.count()} nogo trials.</p>
-        <p>Press any key to complete the experiment. Thank you!</p>`;
-
-    },
-    // on_finish: function(data){ // for Luca
-    //     console.log(jsPsychP.data.get().csv());
-    //     jsPsychP.data.get().localSave('csv','mydata.csv');
-    //     }
-};
-timeline.push(debrief_block_ic);
-
-// ####################
-// ### browser data ###
-// ####################
-
-var browsercheck = {
-    type: jsPsychBrowserCheck, // allows to have data on screen width, heigth, browser used, see https://www.jspsych.org/7.2/plugins/browser-check/
-    skip_features: ['webaudio', 'webcam', 'microphone']
-};
-timeline.push(browsercheck);
 
 // ############################
 // ### exit fullscreen mode ###
