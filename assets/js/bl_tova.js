@@ -15,24 +15,25 @@ var soa = 2000; // duration between the onset of two consecutive stimuli
 // var d = Math.sqrt(o_w * o_w + o_h * o_h);
 var stim_width = 100; // in px, if needed check https://www.jspsych.org/7.2/plugins/resize/
 var tova_up = `
-<div class="up"><img src='assets/img/square.png' style="width:${stim_width}px"></img></div>
+<div class='up' id='square'><img src='assets/img/square.png' style="width:${stim_width}px"></img></div>
 `;
 var tova_down = `
-<div class="down"><img src='assets/img/square.png' style="width:${stim_width}px"></img></div>
+<div class='down' id='square'><img src='assets/img/square.png' style="width:${stim_width}px"></img></div>
 `;
 // background color = black, see 'assets/css/style.css'
-var fixation_cross = '<div class="fixcross">+</div>'; // to change its size, see 'assets/css/style.css'
+var fixation_cross = '<div class="fixcross" id="cross">+</div>'; // to change its size, see 'assets/css/style.css'
 var block_n = 2; // number of blocks
 var block_type = ["SA", "IC"]; // fixed order, sustained attention then inhibitory control
 var test_block = [0, 0, 1, 1]; // enter 0 for no-go and 1 fo go separated by coma between the brackets below, e.g., [0,1] will give a block of 2 trials, first being a no-go, second being a go.
 // var fixed_block_01_sa_40 = [0,0,0,1,0,0,0,0,0,1,0,1,0,1,0,0,1,0,0,0,1,0,0,1,0,1,0,1,0,0,1,0,0,0,1,0,1,0,1,0];
 var fixed_80_block_01_sa = [0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,1,0,0,0,0,1,0,0,1,0,1,0,0,0,1
-];
+]; // fixed 80 SA (20% go / 80% nogo) block was computed through this function : lines 145-174 from https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js. 1) Multiple sequences were computed, 2) 3 were selected by hand while having in mind to keep a distributed distribution of 1 across the entire block, 3) the selection of the chosen block was done with SD and DB
 // 0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1,0,1,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,0,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0
 // 0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,1,0,0,0,1
-var fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,1,1,1,1,1];
+var fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,1,1,1,1,1]; // fixed 40 IC (80% go / 20% nogo) block was computed through this : lines 145-174 https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js, selection was made the same than for SA.
 // 1,0,1,1,1,1,1,1,0,1,0,1,0,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1
 // 1,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,0,1
+var feedback_color = true; // change to false to prevent from having a colored feedback at the end of each trial, see plugin
 
 // #####################################
 // ### modifications in plugin files ###
@@ -43,7 +44,10 @@ var fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,
 // https://github.com/jspsych/jsPsych/discussions/1302
 // file : plugin-html-keyboard-response.js
 
-// 2) in final csv, creation of 'real_trial_index' column which is the trial_index for each block, 0 if not a real trial, begin by 1 if block
+// 2) if feedback_color = true, the CSS of the fixation cross changes to green or red depending on true or false response
+// file : plugin-html-keyboard-response.js
+
+// 3) in final csv, creation of 'real_trial_index' column which is the trial_index for each block, 0 if not a real trial, begin by 1 if block
 // file : jspsych.js
 
 // ##########################
@@ -99,13 +103,13 @@ var stimuli = [
     }
 ];
 var trial = {
-    type: jsPsychHtmlKeyboardResponse,
-    stimulus: jsPsych.timelineVariable('stimulus'),
-    choices: [' '],
-    stimulus_duration: pres_time,
-    trial_duration: soa,
-    response_ends_trial: false,
-    prompt: fixation_cross,
+    type: jsPsychHtmlKeyboardResponse, // this records RT from the begining of the stim onset, see "../vendor/plugin-html-keyboard-response.js"
+    stimulus: jsPsych.timelineVariable('stimulus'), // this will show the 'stimulus'
+    choices: [' '], // this is the array of choices
+    stimulus_duration: pres_time, // this is the stimulus presentation
+    trial_duration: soa, // this is the soa
+    response_ends_trial: false, // false means when a response is done, the trial is not stopping
+    prompt: fixation_cross, // this show the fixation cross all along
     data: {
         block: '', // is modified at the begining of the block/timeline, see "var block_01_sa {'on_timeline_start'}"
         expected_key: jsPsych.timelineVariable('expected_key'),
@@ -143,37 +147,7 @@ var block_01_sa = {
     },
     sample: {
         type: 'custom',
-        fn: function () { // IC
-            var n_gotrials = 32;
-            var n_nogotrials = 8;
-            var arr = [];
-            function rand50() {
-                return Math.floor(Math.random() * 10) & 1;
-            }
-            function rand75() { // https://www.geeksforgeeks.org/generate-0-1-25-75-probability/
-                return rand50() | rand50();
-            }
-            while (arr.length < 40) {
-                var rdm = rand75();
-                if (arr.length == 0) { // first trial is go for IC
-                    arr.push(1);
-                    n_gotrials--;
-                } else if (arr[arr.length - 2] == 0 && arr[arr.length - 1] == 0 && n_gotrials > 0) { // not more than 2 nogo in a row
-                    arr.push(1);
-                    n_gotrials--;
-                } else if (rdm == 0 && n_nogotrials > 0) {
-                    arr.push(rdm);
-                    n_nogotrials--;
-                } else if (rdm == 1 && n_gotrials > 0) {
-                    arr.push(rdm);
-                    n_gotrials--;
-                }
-            }
-            console.log(arr.length);
-            console.log(arr.reduce((accumulator, currentValue) => {
-                return accumulator + currentValue
-            }, 0)); //https://www.freecodecamp.org/news/how-to-add-numbers-in-javascript-arrays/
-            console.log(arr.toString());
+        fn: function () {
             return test_block;
         }
     },

@@ -108,7 +108,16 @@ var jsPsychHtmlKeyboardResponse = (function (jspsych) {
               response.rt.push(info.rt);
               response.key.push(info.key);
               if (trial.response_ends_trial) {
-                  end_trial();
+                end_trial();
+              }
+              // if feedback_color = true and real trial, then change CSS to green or red depending on true or false response *MODIFIED*
+              if (feedback_color == true && trial.trial_duration !== null) {
+                if (display_element.querySelector("#square").className == 'up' // if did a response and stimulus' className is 'up'
+                    && response.key.length == 1) { // and first response
+                    display_element.querySelector("#cross").style.color = "green";
+                } else {
+                    display_element.querySelector("#cross").style.color = "red";
+                }
               }
           };
           // start the response listener
