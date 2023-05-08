@@ -30,7 +30,7 @@ var fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,
 // 1,0,1,1,1,1,1,1,0,1,0,1,0,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1
 // 1,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,0,1
 var fixed_blocks_array = [fixed_80_block_01_sa, fixed_40_block_02_ic] // this is the  array on which the code is based
-var time_before_trials = 2000; // time to wait before getting into the trials
+var post_instructions_time = 2000; // time to wait after instruction to begin the trials
 var feedback_color = true; // change to false to prevent colored feedback at the end of each trial, see plugin-html-keyboard-response.js
 
 // strings
@@ -91,9 +91,9 @@ var review_fullscreenOn = { // fullscreen mode
     type: jsPsychFullscreen,
     message: review_str,
     fullscreen_mode: true,
-    on_finish: function(data){ // wait time_before_trials ms before getting to the next block
+    on_finish: function(data){ // wait post_instructions_time ms before getting to the next block
         jsPsych.pauseExperiment();
-        setTimeout(jsPsych.resumeExperiment, time_before_trials);
+        setTimeout(jsPsych.resumeExperiment, post_instructions_time);
     }
 };
 timeline.push(review_fullscreenOn);
@@ -194,9 +194,9 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
             return `${endblock_str1}${go_accuracy}${endblock_str2}${nogo_accuracy}${endblock_str3}`;
 
         },
-        on_finish: function(data){ // wait time_before_trials ms before getting to the next block
+        on_finish: function(data){ // wait post_instructions_time ms before getting to the next block
             jsPsych.pauseExperiment();
-            setTimeout(jsPsych.resumeExperiment, time_before_trials);
+            setTimeout(jsPsych.resumeExperiment, post_instructions_time);
         }
     };
     timeline.push(debrief_block);
