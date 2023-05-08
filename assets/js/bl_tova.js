@@ -109,14 +109,12 @@ var stimuli = [
     { // represents 0 in practice_array
         stimulus: tova_down,
         stim_img: 'squaredown',
-        expected_key: 'null',
         expected_response: '0',
         condition: 'NoGo'
     },
     { // represents 1 in practice_array
         stimulus: tova_up,
         stim_img: 'squareup',
-        expected_key: ' ',
         expected_response: '1',
         condition: 'Go'
     }
@@ -131,7 +129,6 @@ var trial = {
     prompt: fixation_cross, // this show the fixation cross all along
     data: {
         block: '', // is modified at the begining of the block/timeline, see "var block_01_sa {'on_timeline_start'}"
-        expected_key: jsPsych.timelineVariable('expected_key'),
         condition: jsPsych.timelineVariable('condition'),
         expected_response: jsPsych.timelineVariable('expected_response'),
         effective_response: '', // is modified at the end of each trial, see "'on_finish' below
