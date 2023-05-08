@@ -10,7 +10,8 @@ var jsPsychHtmlKeyboardResponse = (function (jspsych) {
           stimulus: {
               type: jspsych.ParameterType.HTML_STRING,
               pretty_name: "Stimulus",
-              default: undefined,
+            //   default: undefined, // *MODIFIED*
+              default: "", // this prevents having 'undefined' when prompting the end of the block
           },
           /**
            * Array containing the key(s) the subject is allowed to press to respond to the stimulus.
