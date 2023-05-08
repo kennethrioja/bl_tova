@@ -49,7 +49,7 @@ var endblock_str2 = `
 <p>% of correctly refraining answers to BOTTOM square = `
 var endblock_str3 = `
 %</p>
-<p>Whenever you are ready, press the spacebar to continue the experiment.</p>
+<p>Press the spacebar to continue.</p>
 `;
 
 // #####################################
