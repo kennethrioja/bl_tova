@@ -35,11 +35,13 @@ var feedback_color = true; // change to false to prevent colored feedback at the
 
 // strings
 var review_str = `
-<p>Let’s review :</p>
-<p>• Press the spacebar as fast as you can, but only when you see the small square presented at the top.<br>
-• When you press the spacebar, only press it once and don’t hold it down.<br>
-• Finally, don’t go too fast or try to guess; take enough time to see where the square is really presented.</p>
-<p>Click on the button below whenever you are ready to begin the task.</p>
+<p>We are ready for our task now.</p>
+<p>Please press "instructions" if you want a refresher, otherwise "continue".</p>
+<input type="button" value="Instructions" class="jspsych-btn" style="color:grey; background-color:#303030" onClick="showHideDiv('refresher')"/>
+<div id="refresher" style="display:none;">
+<p>If the square is presented at the TOP, please press the spacebar.</p>
+<p>If the square is presented at the BOTTOM, don’t press the spacebar.</p>
+</div>
 `;
 var endblock_str1 = `
 <p>Well done !</p>
@@ -50,7 +52,7 @@ var endblock_str2 = `
 <p>% of correctly refraining answers to BOTTOM square = `
 var endblock_str3 = `
 %</p>
-<p>Press the spacebar to continue.</p>
+<p>Press the spacebar to start next block.</p>
 `;
 
 // #####################################
@@ -62,7 +64,7 @@ var endblock_str3 = `
 // https://github.com/jspsych/jsPsych/discussions/1302
 // file : plugin-html-keyboard-response.js
 
-// 2) if feedback_color = true, the CSS of the fixation cross changes to green or red depending on true or false response
+// 2) if feedback_color = true, the CSS of the fixation cross changes to green or red depending on true or false response on go and no-go trials
 // file : plugin-html-keyboard-response.js
 
 // 3) for stimulus, I changed default: undefined to default: "" to avoid having a 'undefined' word at the end of a block
@@ -91,7 +93,8 @@ var review_fullscreenOn = { // fullscreen mode
     type: jsPsychFullscreen,
     message: review_str,
     fullscreen_mode: true,
-    on_finish: function(data){ // wait post_instructions_time ms before getting to the next block
+    on_finish: function(data){ // change color to black and wait post_instructions_time ms before getting to the first block
+        document.body.style.backgroundColor = '#000000';
         jsPsych.pauseExperiment();
         setTimeout(jsPsych.resumeExperiment, post_instructions_time);
     }
@@ -193,6 +196,9 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
 
             return `${endblock_str1}${go_accuracy}${endblock_str2}${nogo_accuracy}${endblock_str3}`;
 
+        },
+        on_start: function() {
+            document.body.style.backgroundColor = '#202020'; // back to grey
         },
         on_finish: function(data){ // wait post_instructions_time ms before getting to the next block
             jsPsych.pauseExperiment();

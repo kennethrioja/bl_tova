@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-    <!-- https://github.com/Tuuleh/jsPsychTutorialProgress/blob/master/jsPsych/docs/markdown_docs/tutorials/go-nogo-task.md -->
+<!-- https://github.com/Tuuleh/jsPsychTutorialProgress/blob/master/jsPsych/docs/markdown_docs/tutorials/go-nogo-task.md -->
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>bl_tova</title> <!--- CHANGE -->
-    
+
     <!-- https://www.jspsych.org/7.0/developers/configuration/ -->
     <!-- If you use this library in academic work, please cite the [paper that describes jsPsych](http://link.springer.com/article/10.3758%2Fs13428-014-0458-y): de Leeuw, J.R. (2015). jsPsych: A JavaScript library for creating behavioral experiments in a Web browser. *Behavior Research Methods*, _47_(1), 1-12. doi:10.3758/s13428-014-0458-y-->
     <!-- see references about jspsych versions in ./assets/refs-->
     <script src="assets/vendor/jquery-3.6.4.min.js"></script>
-    <link href="assets/vendor/jspsych.css" rel="stylesheet" type="text/css" />   
+    <link href="assets/vendor/jspsych.css" rel="stylesheet" type="text/css" />
     <script src="assets/vendor/jspsych.js"></script>
     <script src="assets/vendor/plugin-browser-check.js"></script>
     <script src="assets/vendor/plugin-fullscreen.js"></script>
@@ -20,8 +21,25 @@
     <script src="assets/vendor/plugin-preload.js"></script>
 
     <script src="assets/js/bl_tova.js"></script>
-    <link href="assets/css/style.css" rel="stylesheet" type="text/css" />   
+    <link href="assets/css/style.css" rel="stylesheet" type="text/css" />
+    
+    <script> // check "review_str"
+        function showHideDiv(element) {
+            var srcElement = document.getElementById(element);
+            if (srcElement != null) {
+                if (srcElement.style.display == "block") {
+                    srcElement.style.display = 'none';
+                }
+                else {
+                    srcElement.style.display = 'block';
+                }
+                return false;
+            }
+        };
+    </script>
 </head>
+
 <body>
 </body>
+
 </html>
