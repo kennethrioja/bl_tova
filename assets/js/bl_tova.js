@@ -31,13 +31,16 @@ var fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,
 // 1,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,0,1
 var fixed_blocks_array = [fixed_80_block_01_sa, fixed_40_block_02_ic] // this is the  array on which the code is based
 var post_instructions_time = 2000; // time to wait after instruction to begin the trials
-var feedback_color = true; // change to false to prevent colored feedback at the end of each trial, see plugin-html-keyboard-response.js
+var show_fixcross = false; // true = show fixation cross
+var feedback_color = false; // true = colored fixation cross depending on correct/incorrect at the end of each trial, see plugin-html-keyboard-response.js
 
 // strings
 var review_str = `
+<div id="review" style="display:block;">
 <p>We are ready for our task now.</p>
-<p>Please press "instructions" if you want a refresher, otherwise "continue".</p>
-<input type="button" value="Instructions" class="jspsych-btn" style="color:grey; background-color:#303030" onClick="showHideDiv('refresher')"/>
+<p>Please press "Instructions" if you want a refresher, otherwise "Begin Task".</p>
+<input type="button" value="Instructions" class="jspsych-btn" style="color:grey; background-color:#303030" onClick="showHideDiv('review', 'refresher')"/>
+</div>
 <div id="refresher" style="display:none;">
 <p>If the square is presented at the TOP, please press the spacebar.</p>
 <p>If the square is presented at the BOTTOM, don’t press the spacebar.</p>
@@ -54,6 +57,10 @@ var endblock_str3 = `
 %</p>
 <p>Press the spacebar to start next block.</p>
 `;
+var end_task_str =`<p style="text-align:center"><br><br><br><br><br>
+This is the end of the task. Thank you for your participation. You can now go back to Prolific and enter the following completion code: XXXX
+</p>`;
+
 
 // #####################################
 // ### modifications in plugin files ###
@@ -93,6 +100,7 @@ var review_fullscreenOn = { // fullscreen mode
     type: jsPsychFullscreen,
     message: review_str,
     fullscreen_mode: true,
+    choices: ['Begin Task'],
     on_finish: function(data){ // change color to black and wait post_instructions_time ms before getting to the first block
         document.body.style.backgroundColor = '#000000';
         jsPsych.pauseExperiment();
@@ -132,7 +140,10 @@ var trial = {
     stimulus_duration: pres_time, // this is the stimulus presentation
     trial_duration: soa, // this is the soa
     response_ends_trial: false, // false means when a response is done, the trial is not stopping
-    prompt: fixation_cross, // this show the fixation cross all along
+    prompt: function() {
+        if (show_fixcross)
+            return (fixation_cross); // this show the fixation cross all along
+    },
     data: {
         block: '', // is modified at the begining of the block/timeline, see block.on_timeline_start
         condition: jsPsych.timelineVariable('condition'),
@@ -183,7 +194,6 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
         type: jsPsychHtmlKeyboardResponse,
         choices: [' '],
         prompt: function () {
-
             var trials = jsPsych.data.get().filter({ block: block_type[i] });
             var go_trials = trials.filter({ condition: 'Go' });
             var nogo_trials = trials.filter({ condition: 'NoGo' });
@@ -193,19 +203,18 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
             var go_accuracy = Math.round(correct_go_trials.count() / go_trials.count() * 100);
             var nogo_accuracy = Math.round(correct_nogo_trials.count() / nogo_trials.count() * 100);
             var correct_go_rt = Math.round(correct_go_trials.select('rt').mean());
-
             return `${endblock_str1}${go_accuracy}${endblock_str2}${nogo_accuracy}${endblock_str3}`;
-
         },
         on_start: function() {
             document.body.style.backgroundColor = '#202020'; // back to grey
         },
         on_finish: function(data){ // wait post_instructions_time ms before getting to the next block
+            document.body.style.backgroundColor = '#000000'; // back to black
             jsPsych.pauseExperiment();
             setTimeout(jsPsych.resumeExperiment, post_instructions_time);
         }
     };
-    timeline.push(debrief_block);
+    timeline.push(debrief_block);    
 }
 
 // ############################
@@ -215,8 +224,8 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
 timeline.push({
     type: jsPsychFullscreen,
     fullscreen_mode: false,
-    delay_after: 0,
     on_finish: function (data) {
+        document.body.innerHTML = end_task_str;
         var final = jsPsych.data.get();
         console.log(final.csv());
         final.localSave('csv', 'mydata.csv');
