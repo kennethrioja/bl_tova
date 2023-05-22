@@ -22,16 +22,19 @@
 
     <script src="assets/js/bl_tova.js"></script>
     <link href="assets/css/style.css" rel="stylesheet" type="text/css" />
-    
+
     <script> // check "review_str"
-        function showHideDiv(element) {
-            var srcElement = document.getElementById(element);
-            if (srcElement != null) {
-                if (srcElement.style.display == "block") {
-                    srcElement.style.display = 'none';
+        function showHideDiv(hide, show) {
+            var srcShow = document.getElementById(show);
+            var srcHide = document.getElementById(hide);
+            if (srcShow != null) {
+                if (srcShow.style.display == "block") {
+                    srcShow.style.display = 'none';
+                    srcHide.style.display = 'block';
                 }
                 else {
-                    srcElement.style.display = 'block';
+                    srcShow.style.display = 'block';
+                    srcHide.style.display = 'none';
                 }
                 return false;
             }
