@@ -114,7 +114,7 @@ var jsPsychInstructions = (function (jspsych) {
                   if (trial.allow_backward) {
                       var allowed = current_page > 0 ? "" : "disabled='disabled'";
                       nav_html +=
-                          "<button id='jspsych-instructions-back' class='jspsych-btn' style='margin-right: 5px;' " +
+                            "<button id='jspsych-instructions-back' class='jspsych-btn' style='margin-right: 5px; background-color:#555' " + // *MODIFIED* changed backward button background to grey
                               allowed +
                               ">&lt; " +
                               trial.button_label_previous +

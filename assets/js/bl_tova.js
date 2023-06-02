@@ -10,16 +10,17 @@
 var pres_time = 250; // stimulus presentation time
 var soa = 2000; // duration between the onset of two consecutive stimuli
 // var isi = soa - pres_time; // inter stimulus interval, NOT USE IN THE CODE
-// var o_w = window.outerWidth; // check https://www.jspsych.org/7.2/plugins/virtual-chinrest/
-// var o_h = window.outerHeight;
-// var d = Math.sqrt(o_w * o_w + o_h * o_h);
-var stim_width = 100; // in px, if needed check https://www.jspsych.org/7.2/plugins/resize/
+var width_px = window.outerWidth; // check https://www.jspsych.org/7.2/plugins/virtual-chinrest/
+var height_px = window.outerHeight;
+var d_px = Math.sqrt(width_px * width_px + height_px * height_px);
+var stim_diag_px = d_px * 0.2;
+var stim_width_px = width_px * 0.2; // in px, if needed check https://www.jspsych.org/7.2/plugins/resize/
 var tova_up = `
-<div class='up' id='square'><img src='assets/img/square.png' style="width:${stim_width}px"></img></div>
-`;
+<div class='up' id='shape'><img src='assets/img/shape.png' style="width:${stim_width_px}px"></img></div>
+`; // id='shape' is mandatory, without it it won't work, see plugin-html-keyboard-response.js
 var tova_down = `
-<div class='down' id='square'><img src='assets/img/square.png' style="width:${stim_width}px"></img></div>
-`;
+<div class='down' id='shape'><img src='assets/img/shape.png' style="width:${stim_width_px}px"></img></div>
+`; // id='shape' is mandatory, without it it won't work, see plugin-html-keyboard-response.js
 // background color = black, see 'assets/css/style.css'
 var fixation_cross = '<div class="fixcross" id="cross">+</div>'; // to change its size, see 'assets/css/style.css'
 var block_type = ["SA", "IC"]; // fixed order, sustained attention then inhibitory control. Note : those are the names under the column "block", they are not used for functional code - esthetic only
@@ -35,32 +36,59 @@ var show_fixcross = false; // true = show fixation cross
 var feedback_color = false; // true = colored fixation cross depending on correct/incorrect at the end of each trial, see plugin-html-keyboard-response.js
 
 // strings
+function showHideDiv(hide, show) { // see review_str
+    var srcShow = document.getElementById(show);
+    var srcHide = document.getElementById(hide);
+    if (srcShow != null) {
+        if (srcShow.style.display == "block") {
+            srcShow.style.display = 'none';
+            srcHide.style.display = 'block';
+        }
+        else {
+            srcShow.style.display = 'block';
+            srcHide.style.display = 'none';
+        }
+        return false;
+    }
+};
 var review_str = `
 <div id="review" style="display:block;">
-<p>We are ready for our task now.</p>
+<p>We are ready for the task now.</p>
 <p>Please press "Instructions" if you want a refresher, otherwise "Begin Task".</p>
 <input type="button" value="Instructions" class="jspsych-btn" style="color:grey; background-color:#303030" onClick="showHideDiv('review', 'refresher')"/>
 </div>
 <div id="refresher" style="display:none;">
-<p>If the square is presented at the TOP, please press the spacebar.</p>
-<p>If the square is presented at the BOTTOM, don’t press the spacebar.</p>
+<p>If the shape is presented at the TOP, please press the spacebar.</p>
+<p>If the shape is presented at the BOTTOM, don’t press the spacebar.</p>
 </div>
+<br>
 `;
 var endblock_str1 = `
 <p>Well done !</p>
-<p>% of correctly answering to TOP square = 
+<p>% of correctly answering to TOP shape = 
 `
 var endblock_str2 = `
 %</p>
-<p>% of correctly refraining answers to BOTTOM square = `
+<p>% of correctly refraining answers to BOTTOM shape = `
 var endblock_str3 = `
 %</p>
-<p>Press the spacebar to start next block.</p>
+<p>Press the spacebar to start the next block.</p>
 `;
-var end_task_str =`<p style="text-align:center"><br><br><br><br><br>
-This is the end of the task. Thank you for your participation. You can now go back to Prolific and enter the following completion code: XXXX
+var endblock_str4 = `
+%</p>
+<p>Press the spacebar to complete the task.</p>
+`;
+var inlab_final_str =`<p style="text-align:center"><br><br><br><br><br>
+This is the end of the task.<br><br>
+Thank you for your participation.<br><br>
+You can call the experimenter.
 </p>`;
-
+var completion_code_str =`<p style="text-align:center"><br><br><br><br><br>
+This is the end of the task.<br><br>
+Thank you for your participation.<br><br>
+You can now go back to Prolific and enter the following completion code : <br><br>
+<strong>XXXX</strong>
+</p>`;
 
 // #####################################
 // ### modifications in plugin files ###
@@ -80,17 +108,56 @@ This is the end of the task. Thank you for your participation. You can now go ba
 // 4) in final csv, creation of 'real_trial_index' column which is the trial_index for each block, 0 if not a real trial, begin by 1 if block
 // file : jspsych.js
 
+// 5) grey previous buttons in instructions
+// file : plugin-instructions.js
+
+// ###################
+// ### Precautions ###
+// ###################
+
+// prevent ctrl+r or cmd+r : https://stackoverflow.com/questions/46882116/javascript-prevent-page-refresh-via-ctrl-and-r, https://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
+$(document).ready(function () {
+    $(document).on("keydown", function(e) {
+        e = e || window.event;
+        if (e.ctrlKey || e.metaKey) {
+            var c = e.which || e.keyCode;
+            if (c == 82) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
+    });
+});
+
+// prevent getting back or closing the window : https://stackoverflow.com/questions/12381563/how-can-i-stop-the-browser-back-button-using-javascript
+window.onbeforeunload = function() { return "Your work will be lost."; };
+
 // ##########################
 // ### initialize jsPsych ###
 // ##########################
 
 var jsPsych = initJsPsych();
 
+// capture info from practice
+var subject_id = jsPsych.data.getURLVariable('PROLIFIC_PID');
+var study_id = jsPsych.data.getURLVariable('STUDY_ID');
+var session_id = jsPsych.data.getURLVariable('SESSION_ID');
+
+// add variables to data
+jsPsych.data.addProperties({
+    subject_id: subject_id,
+    study_id: study_id,
+    session_id: session_id,
+    presentation_time: pres_time,
+    soa: soa,
+    stimulus_diagonal_in_px: stim_diag_px
+});
+
 var timeline = []; // create timeline
 
 var preload = { // preload the images
     type: jsPsychPreload,
-    images: ['assets/img/square.png', // path from html
+    images: ['assets/img/shape.png', // path from html
         'assets/img/tova_up.png',
         'assets/img/tova_down.png']
 };
@@ -100,7 +167,7 @@ var review_fullscreenOn = { // fullscreen mode
     type: jsPsychFullscreen,
     message: review_str,
     fullscreen_mode: true,
-    choices: ['Begin Task'],
+    button_label: "Begin Task",
     on_finish: function(data){ // change color to black and wait post_instructions_time ms before getting to the first block
         document.body.style.backgroundColor = '#000000';
         jsPsych.pauseExperiment();
@@ -122,13 +189,13 @@ timeline.push(browsercheck);
 var stimuli = [
     { // represents 0 in practice_array
         stimulus: tova_down,
-        stim_img: 'squaredown',
+        stim_img: 'shapedown',
         expected_response: '0',
         condition: 'NoGo'
     },
     { // represents 1 in practice_array
         stimulus: tova_up,
-        stim_img: 'squareup',
+        stim_img: 'shapeup',
         expected_response: '1',
         condition: 'Go'
     }
@@ -184,6 +251,7 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
             type: 'custom',
             fn: function () {
                 return fixed_blocks_array[i];
+                // return [0,1]; // for debugging
             }
         },
     }
@@ -203,6 +271,9 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
             var go_accuracy = Math.round(correct_go_trials.count() / go_trials.count() * 100);
             var nogo_accuracy = Math.round(correct_nogo_trials.count() / nogo_trials.count() * 100);
             var correct_go_rt = Math.round(correct_go_trials.select('rt').mean());
+            if (i === fixed_blocks_array.length - 1) {
+                return `${endblock_str1}${go_accuracy}${endblock_str2}${nogo_accuracy}${endblock_str4}`;
+            }
             return `${endblock_str1}${go_accuracy}${endblock_str2}${nogo_accuracy}${endblock_str3}`;
         },
         on_start: function() {
@@ -225,10 +296,15 @@ timeline.push({
     type: jsPsychFullscreen,
     fullscreen_mode: false,
     on_finish: function (data) {
-        document.body.innerHTML = end_task_str;
-        var final = jsPsych.data.get();
+        // document.body.innerHTML = completion_code_str;
+        document.body.innerHTML = inlab_final_str;
+        const date = new Date();
+        const month = date.getMonth() + 1 < 10 ? ("0" + (date.getMonth() + 1)) : (date.getMonth() + 1).toString();
+        const day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate().toString();
+        const final = jsPsych.data.get();
         console.log(final.csv());
-        final.localSave('csv', 'mydata.csv');
+        final.localSave('csv', data.subject_id + "_blTova_task_" + date.getFullYear() + month + day + ".csv");
+        window.onbeforeunload = null; // disable the prevention
     }
 });
 

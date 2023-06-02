@@ -102,11 +102,11 @@ var jsPsychHtmlKeyboardResponse = (function (jspsych) {
             // handle non responses by the subject : correct nogo trial = cross turns green 250ms before end of trial *MODIFIED*
             if (feedback_color == true
                 && trial.trial_duration !== null) {
-                if (display_element.querySelector("#square").className == 'down') { // if stimulus' className is 'down' (nogo trial)
+                if (display_element.querySelector("#shape").className == 'down') { // if stimulus' className is 'down' (nogo trial)
                     var corr_nogo = this.jsPsych.pluginAPI.setTimeout(() => { // correct_nogo : setTimeout will change cross to green 250ms before end of nogo trial
                         display_element.querySelector("#cross").style.color = "green";
                     }, trial.trial_duration - 250);
-                } else if (display_element.querySelector("#square").className == 'up') { // if stimulus' className is 'up' (go trial)
+                } else if (display_element.querySelector("#shape").className == 'up') { // if stimulus' className is 'up' (go trial)
                     var incorr_go = this.jsPsych.pluginAPI.setTimeout(() => { // incorrect_go : setTimeout will change cross to red 250ms before end of go trial
                         display_element.querySelector("#cross").style.color = "red";
                     }, trial.trial_duration - 250);
@@ -127,7 +127,7 @@ var jsPsychHtmlKeyboardResponse = (function (jspsych) {
                 // correct go trial : if feedback_color = true and real trial, then change CSS to green or red depending on true or false response *MODIFIED*
                 if (feedback_color == true
                     && trial.trial_duration !== null) {
-                    if (display_element.querySelector("#square").className == 'up' // if did a response and stimulus' className is 'up'
+                    if (display_element.querySelector("#shape").className == 'up' // if did a response and stimulus' className is 'up'
                         && response.key.length == 1) { // and first response
                         display_element.querySelector("#cross").style.color = "green";
                         clearTimeout(incorr_go); // incorrect go trial : cancel the 'setTimeout' (see "handle non responses") = cross does not turn red after non-response on go trial

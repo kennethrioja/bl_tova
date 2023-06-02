@@ -23,14 +23,14 @@ body {
 
 .up {
     position: fixed;
-    top: 33.33%;
+    top: 30%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
 
 .down {
     position: fixed;
-    top: 66.66%;
+    top: 70%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
