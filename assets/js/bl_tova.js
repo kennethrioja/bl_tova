@@ -7,39 +7,40 @@
 // ############################
 // based on Denkinger Sylvie's 'TOVA_parameters_2023' excel sheet 
 
-const pres_time = 250; // stimulus presentation time
-const soa = 2000; // duration between the onset of two consecutive stimuli
+const   pres_time = 250; // stimulus presentation time
+const   soa = 2000; // duration between the onset of two consecutive stimuli
 // const isi = soa - pres_time; // inter stimulus interval, NOT USE IN THE CODE
-const width_px = window.outerWidth; // check https://www.jspsych.org/7.2/plugins/virtual-chinrest/
-const height_px = window.outerHeight;
-const d_px = Math.sqrt(width_px * width_px + height_px * height_px);
-const stim_diag_px = d_px * 0.2;
-const stim_width_px = width_px * 0.2; // in px, if needed check https://www.jspsych.org/7.2/plugins/resize/
+const   width_px = window.outerWidth; // check https://www.jspsych.org/7.2/plugins/virtual-chinrest/
+const   height_px = window.outerHeight;
+const   d_px = Math.sqrt(width_px * width_px + height_px * height_px);
+const   stim_diag_px = d_px * 0.2;
+const   stim_width_px = width_px * 0.2; // in px, if needed check https://www.jspsych.org/7.2/plugins/resize/
 // const root_path = 'https://s3.amazonaws.com/BavLab/TOVA/';
-const root_path = './';
-const tova_up = `
+const   root_path = './';
+const   tova_up = `
 <div class='up' id='shape'><img src='${root_path}assets/img/shape.png' style="width:${stim_width_px}px"></img></div>
 `; // id='shape' is mandatory, without it it won't work, see plugin-html-keyboard-response.js
-const tova_down = `
+const   tova_down = `
 <div class='down' id='shape'><img src='${root_path}assets/img/shape.png' style="width:${stim_width_px}px"></img></div>
 `; // id='shape' is mandatory, without it it won't work, see plugin-html-keyboard-response.js
 // background color = black, see 'assets/css/style.css'
-const fixation_cross = '<div class="fixcross" id="cross">+</div>'; // to change its size, see 'assets/css/style.css'
-const practice_array = [1, 1, 0, 1, 0]; // 1 for go, 0 for no go – modify this array to suit your needs
-const block_type = ["SA", "IC"]; // fixed order, sustained attention then inhibitory control. Note : those are the names under the column "block", they are not used for functional code - esthetic only
-const fixed_80_block_01_sa = [0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,1,0,0,0,0,1,0,0,1,0,1,0,0,0,1]; // fixed 80 SA (20% go / 80% nogo) block was computed through this function : lines 145-174 from https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js. 1) Multiple sequences were computed, 2) 3 were selected by hand while having in mind to keep a distributed distribution of 1 across the entire block, 3) the selection of the chosen block was done with SD and DB
+const   fixation_cross = '<div class="fixcross" id="cross">+</div>'; // to change its size, see 'assets/css/style.css'
+const   practice_array = [1, 1, 0, 1, 0]; // 1 for go, 0 for no go – modify this array to suit your needs
+const   block_type = ["SA", "IC"]; // fixed order, sustained attention then inhibitory control. Note : those are the names under the column "block", they are not used for functional code - esthetic only
+const   fixed_80_block_01_sa = [0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,1,0,0,0,0,1,0,0,1,0,1,0,0,0,1]; // fixed 80 SA (20% go / 80% nogo) block was computed through this function : lines 145-174 from https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js. 1) Multiple sequences were computed, 2) 3 were selected by hand while having in mind to keep a distributed distribution of 1 across the entire block, 3) the selection of the chosen block was done with SD and DB
 // 0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1,0,1,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,0,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0
 // 0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,1,0,0,0,1
-const fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,1,1,1,1,1]; // fixed 40 IC (80% go / 20% nogo) block was computed through this : lines 145-174 https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js, selection was made the same than for SA.
+const   fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,1,1,1,1,1]; // fixed 40 IC (80% go / 20% nogo) block was computed through this : lines 145-174 https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js, selection was made the same than for SA.
 // 1,0,1,1,1,1,1,1,0,1,0,1,0,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1
 // 1,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,0,1
-const fixed_blocks_array = [fixed_80_block_01_sa, fixed_40_block_02_ic] // this is the  array on which the code is based
-const post_instructions_time = 2000; // time to wait after instruction to begin the trials
-const show_fixcross_array = [true, false]; // true = show fixation cross. First one is for practice, second is for main task
-const feedback_color_array = [true, false]; // set for each block, if you want a colored feedback on your fixation cross. First one is for practice, second is for main task
-const ask_for_id = true; // true = displays a form asking for subject id, study id and session id, if false the URL MUST CONTAIN '?PROLIFIC_PID=*&STUDY_ID=*&SESSION_ID=*' with '*' being the corresponding values to variables.
+const   fixed_blocks_array = [fixed_80_block_01_sa, fixed_40_block_02_ic] // this is the  array on which the code is based
+const   post_instructions_time = 2000; // time to wait after instruction to begin the trials
+const   show_fixcross_array = [true, false]; // true = show fixation cross. First one is for practice, second is for main task
+const   feedback_color_array = [true, false]; // set for each block, if you want a colored feedback on your fixation cross. First one is for practice, second is for main task
+var     feedback_color = false; // this global variable will be updated depending on feedback_color_array. True = changes fixation cross to green/red depending of correct/incorrect response at the end of each trial, see plugin-html-keyboard-response.js
+const   ask_for_id = true; // true = displays a form asking for subject id, study id and session id. BACKEND : if false the URL MUST CONTAIN '?PROLIFIC_PID=*&STUDY_ID=*&SESSION_ID=*' with '*' being the corresponding values to variables.
+var     do_practice = true; // true = do practice, false = don't. Can be a way to skip practice if problem during task.
 
-const feedback_color = true; // TO REMOVE
 
 // strings
 function showHideDiv(hide, show) { // see review_str
@@ -241,6 +242,10 @@ var browsercheck = { // get browser data
 };
 timeline.push(browsercheck);
 
+// ################
+// ### PRACTICE ###
+// ################
+
 // ####################
 // ### instructions ###
 // ####################
@@ -282,13 +287,13 @@ var instructions = {
         setTimeout(jsPsych.resumeExperiment, post_instructions_time);
     }
 }
-timeline.push(instructions);
+do_practice ? timeline.push(instructions) : null;  // ternary to say to do push this in the timeline if we want to go through the practice
 
 // ########################################################################
 // ### define stimuli + their inner variables and trial + its procedure ###
 // ########################################################################
 
-var stimuli = [
+var stimuli_practice = [
     { // represents 0 in practice_array
         stimulus: tova_down,
         stim_img: 'shapedown',
@@ -302,7 +307,7 @@ var stimuli = [
         condition: 'Go'
     }
 ];
-var trial = {
+var trial_practice = {
     type: jsPsychHtmlKeyboardResponse, // this records RT from the begining of the stim onset, see "../vendor/plugin-html-keyboard-response.js"
     stimulus: jsPsych.timelineVariable('stimulus'), // this will show the 'stimulus'
     choices: [' '], // this is the array of choices
@@ -337,17 +342,17 @@ var trial = {
     }
 };
 
-// ####################################################################
-// ### for loop on fixed_blocks_array to create blocks and feedback ###
-// ####################################################################
+// ##################################
+// ### create blocks and feedback ###
+// ##################################
 
 // create block 
-var block = {
-    timeline_variables: stimuli,
-    timeline: [trial], // needs to be an array
+var block_practice = {
+    timeline_variables: stimuli_practice,
+    timeline: [trial_practice], // needs to be an array
     on_timeline_start: function () {
         trial.data.block = 'practice';
-        // feedback_color_array[0] ? feedback_color = true : feedback_color = false; // global variable that will be set at each block. True = colored fixation cross depending on correct/incorrect at the end of each trial, see plugin-html-keyboard-response.js. 
+        feedback_color_array[0] ? feedback_color = true : feedback_color = false; // global variable that will be set at each block. True = colored fixation cross depending on correct/incorrect at the end of each trial, see plugin-html-keyboard-response.js. 
     },
     sample: {
         type: 'custom',
@@ -356,26 +361,23 @@ var block = {
         }
     },
 }
-timeline.push(block);
+do_practice ? timeline.push(block_practice) : null;
 
 // debrief block
-var debrief_block = {
+var debrief_block_practice = {
     type: jsPsychHtmlKeyboardResponse,
     choices: [' '],
     prompt: function () {
-
-        const trials = jsPsych.data.get().filter({ block: 'practice' });
-        const go_trials = trials.filter({ condition: 'Go' });
-        const nogo_trials = trials.filter({ condition: 'NoGo' });
-        const correct_trials = trials.filter({ correct: true });
-        const correct_go_trials = correct_trials.filter({ condition: 'Go' });
-        const correct_nogo_trials = correct_trials.filter({ condition: 'NoGo' });
-        const go_accuracy = Math.round(correct_go_trials.count() / go_trials.count() * 100);
-        const nogo_accuracy = Math.round(correct_nogo_trials.count() / nogo_trials.count() * 100);
-        const correct_go_rt = Math.round(correct_go_trials.select('rt').mean());
-
-        return `${endblock_practice_str1}${go_accuracy}${endblock_practice_str2}${nogo_accuracy}${endblock_practice_str3}`;
-
+        const trials_practice = jsPsych.data.get().filter({ block: 'practice' });
+        const go_trials_practice = trials_practice.filter({ condition: 'Go' });
+        const nogo_trials_practice = trials_practice.filter({ condition: 'NoGo' });
+        const correct_trials_practice = trials_practice.filter({ correct: true });
+        const correct_go_trials_practice = correct_trials_practice.filter({ condition: 'Go' });
+        const correct_nogo_trials_practice = correct_trials_practice.filter({ condition: 'NoGo' });
+        const go_accuracy_practice = Math.round(correct_go_trials_practice.count() / go_trials_practice.count() * 100);
+        const nogo_accuracy_practice = Math.round(correct_nogo_trials_practice.count() / nogo_trials_practice.count() * 100);
+        const correct_go_rt_practice = Math.round(correct_go_trials_practice.select('rt').mean());
+        return `${endblock_practice_str1}${go_accuracy_practice}${endblock_practice_str2}${nogo_accuracy_practice}${endblock_practice_str3}`;
     },
     on_start: function () {
         document.body.style.backgroundColor = '#202020'; // back to grey
@@ -389,13 +391,13 @@ var debrief_block = {
         const day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate().toString();
         const final = jsPsych.data.get();
         console.log(final.csv()); // can be removed
-        final.localSave('csv', data.subject_id + "_blTova_practice_" + date.getFullYear() + month + day + ".csv"); // BACK-END : need to save this csv in the back-end
+        final.localSave('csv', data.subject_id + "_blTova_practice_" + date.getFullYear() + month + day + ".csv"); // BACKEND : need to save this csv
         // window.onbeforeunload = null; // disables the prevention, no need to now
         // window.location.replace("../../bl_tova/index.html?PROLIFIC_PID=" + data.subject_id + "&STUDY_ID=" + data.study_id + "&SESSION_ID=" + data.session_id); // autoredirects to task, whenever the folder of the practice is at the same level than the folder of the task, no need to now
     }
 }
 
-timeline.push(debrief_block);
+do_practice ? timeline.push(debrief_block_practice) : null;
 
 // ############################
 // ### exit fullscreen mode ###
@@ -411,194 +413,194 @@ timeline.push(debrief_block);
 //         const day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate().toString();
 //         const final = jsPsych.data.get();
 //         console.log(final.csv()); // can be removed
-//         final.localSave('csv', data.subject_id + "_blTova_practice_" + date.getFullYear() + month + day + ".csv"); // BACK-END : need to save this csv in the back-end
+//         final.localSave('csv', data.subject_id + "_blTova_practice_" + date.getFullYear() + month + day + ".csv"); // BACKEND : need to save this csv
 //         window.onbeforeunload = null; // disables the prevention
 //         // window.location.replace("../../bl_tova/index.html?PROLIFIC_PID=" + data.subject_id + "&STUDY_ID=" + data.study_id + "&SESSION_ID=" + data.session_id); // autoredirects to task, whenever the folder of the practice is at the same level than the folder of the task
 //     }
 // });
 
-jsPsych.run(timeline);
+// jsPsych.run(timeline);
 
-// // #################
-// // ### MAIN TASK ###
-// // #################
+// #################
+// ### MAIN TASK ###
+// #################
 
-// // var jsPsych = initJsPsych();
+// var jsPsych = initJsPsych();
 
-// // // capture info from Prolific through the URL
-// // var subject_id = jsPsych.data.getURLVariable('PROLIFIC_PID');
-// // var study_id = jsPsych.data.getURLVariable('STUDY_ID');
-// // var session_id = jsPsych.data.getURLVariable('SESSION_ID');
+// // capture info from Prolific through the URL
+// var subject_id = jsPsych.data.getURLVariable('PROLIFIC_PID');
+// var study_id = jsPsych.data.getURLVariable('STUDY_ID');
+// var session_id = jsPsych.data.getURLVariable('SESSION_ID');
 
-// // // add variables to data
-// // jsPsych.data.addProperties({
-// //     subject_id: subject_id,
-// //     study_id: study_id,
-// //     session_id: session_id,
-// //     presentation_time: pres_time,
-// //     soa: soa,
-// //     stimulus_diagonal_in_px: stim_diag_px
-// // });
-
-// // var timeline1 = []; // create timeline
-
-// // REMOVE
-// // var preload = { // preload the images
-// //     type: jsPsychPreload,
-// //     images: ['assets/img/shape.png', // path from html
-// //         'assets/img/tova_up.png',
-// //         'assets/img/tova_down.png']
-// // };
-// // timeline.push(preload); // same than practice
-
-// var review_fullscreenOn = { // fullscreen mode
-//     type: jsPsychFullscreen,
-//     message: review_str,
-//     fullscreen_mode: true,
-//     button_label: "Begin Task",
-//     on_finish: function(data){ // change color to black and wait post_instructions_time ms before getting to the first block
-//         document.body.style.backgroundColor = '#000000';
-//         jsPsych.pauseExperiment();
-//         setTimeout(jsPsych.resumeExperiment, post_instructions_time);
-//     }
-// };
-// timeline.push(review_fullscreenOn);
-
-// // var browsercheck = { // get browser data
-// //     type: jsPsychBrowserCheck, // allows to have data on screen width, heigth, browser used, see https://www.jspsych.org/7.2/plugins/browser-check/
-// //     skip_features: ['webaudio', 'webcam', 'microphone']
-// // };
-// // timeline.push(browsercheck);
-
-// // ########################################################################
-// // ### define stimuli + their inner variables and trial + its procedure ###
-// // ########################################################################
-
-// var stimuli = [
-//     { // represents 0 in practice_array
-//         stimulus: tova_down,
-//         stim_img: 'shapedown',
-//         expected_response: '0',
-//         condition: 'NoGo'
-//     },
-//     { // represents 1 in practice_array
-//         stimulus: tova_up,
-//         stim_img: 'shapeup',
-//         expected_response: '1',
-//         condition: 'Go'
-//     }
-// ];
-// var trial = {
-//     type: jsPsychHtmlKeyboardResponse, // this records RT from the begining of the stim onset, see "../vendor/plugin-html-keyboard-response.js"
-//     stimulus: jsPsych.timelineVariable('stimulus'), // this will show the 'stimulus'
-//     choices: [' '], // this is the array of choices
-//     stimulus_duration: pres_time, // this is the stimulus presentation
-//     trial_duration: soa, // this is the soa
-//     response_ends_trial: false, // false means when a response is done, the trial is not stopping
-//     prompt: function() {
-//         if (show_fixcross_array[1])
-//             return (fixation_cross); // this show the fixation cross all along
-//     },
-//     data: {
-//         block: '', // is modified at the begining of the block/timeline, see block.on_timeline_start
-//         condition: jsPsych.timelineVariable('condition'),
-//         expected_response: jsPsych.timelineVariable('expected_response'),
-//         effective_response: '', // is modified at the end of each trial, see "'on_finish' below
-//     },
-//     on_finish: function (data) {
-//         // give to data.stimulus the right label
-//         data.stimulus = jsPsych.timelineVariable('stim_img');
-//         // read data.response (= array of key) to give the right number to effective_response
-//         if (data.response.length >= 2) {
-//             data.effective_response = 2; // 2 = multiple responses
-//         } else {
-//             if (data.response[0]) {
-//                 data.effective_response = 1; // 1 = pressed space
-//             } else {
-//                 data.effective_response = 0; // 0 = refrained
-//             }
-//         }
-//         // compute data.correct
-//         data.correct = (data.expected_response == data.effective_response);
-//     }
-// };
-
-// // ####################################################################
-// // ### for loop on fixed_blocks_array to create blocks and feedback ###
-// // ####################################################################
-
-// for (let i = 0; i < fixed_blocks_array.length; i++){
-//     // create block 
-//     var block = {
-//         timeline_variables: stimuli,
-//         timeline: [trial], // needs to be an array
-//         on_timeline_start: function () {
-//             trial.data.block = block_type[i]; // change block name to block_type[i]
-//             feedback_color_array[1] ? feedback_color = true : feedback_color = false;
-//         },
-//         sample: {
-//             type: 'custom',
-//             fn: function () {
-//                 // return fixed_blocks_array[i];
-//                 return [0,1]; // for debugging
-//             }
-//         },
-//     }
-//     timeline.push(block);
-
-//     // debrief block
-//     var debrief_block = {
-//         type: jsPsychHtmlKeyboardResponse,
-//         choices: [' '],
-//         prompt: function () {
-//             let trials = jsPsych.data.get().filter({ block: block_type[i] });
-//             let go_trials = trials.filter({ condition: 'Go' });
-//             let nogo_trials = trials.filter({ condition: 'NoGo' });
-//             let correct_trials = trials.filter({ correct: true });
-//             let correct_go_trials = correct_trials.filter({ condition: 'Go' });
-//             let correct_nogo_trials = correct_trials.filter({ condition: 'NoGo' });
-//             let go_accuracy = Math.round(correct_go_trials.count() / go_trials.count() * 100);
-//             let nogo_accuracy = Math.round(correct_nogo_trials.count() / nogo_trials.count() * 100);
-//             let correct_go_rt = Math.round(correct_go_trials.select('rt').mean());
-//             if (i === fixed_blocks_array.length - 1) {
-//                 return `${endblock_str1}${go_accuracy}${endblock_str2}${nogo_accuracy}${endblock_str4}`;
-//             }
-//             return `${endblock_str1}${go_accuracy}${endblock_str2}${nogo_accuracy}${endblock_str3}`;
-//         },
-//         on_start: function() {
-//             document.body.style.backgroundColor = '#202020'; // back to grey
-//         },
-//         on_finish: function(data){ // wait post_instructions_time ms before getting to the next block
-//             document.body.style.backgroundColor = '#000000'; // back to black
-//             jsPsych.pauseExperiment();
-//             setTimeout(jsPsych.resumeExperiment, post_instructions_time);
-//         }
-//     };
-//     timeline.push(debrief_block);    
-// }
-
-// // ############################
-// // ### exit fullscreen mode ###
-// // ############################
-
-// timeline.push({
-//     type: jsPsychFullscreen,
-//     fullscreen_mode: false,
-//     on_finish: function (data) {
-//         // document.body.innerHTML = completion_code_str; // enable to show completion_code_str
-//         // document.body.innerHTML = inlab_final_str; 
-//         document.body.innerHTML = classic_end_str
-//         // BACKEND - WHAT DO YOU WANT TO BE DISPLAYED AT THE END OF THE TASK ?
-
-//         const date = new Date();
-//         const month = date.getMonth() + 1 < 10 ? ("0" + (date.getMonth() + 1)) : (date.getMonth() + 1).toString();
-//         const day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate().toString();
-//         const final = jsPsych.data.get();
-
-//         console.log(final.csv());
-//         final.localSave('csv', data.subject_id + "_blTova_task_" + date.getFullYear() + month + day + ".csv"); // BACKEND MUST SAVE FINAL.CSV() AT THIS POINT
-//         window.onbeforeunload = null; // disable the prevention
-//     }
+// // add variables to data
+// jsPsych.data.addProperties({
+//     subject_id: subject_id,
+//     study_id: study_id,
+//     session_id: session_id,
+//     presentation_time: pres_time,
+//     soa: soa,
+//     stimulus_diagonal_in_px: stim_diag_px
 // });
 
-// jsPsych.run(timeline); 
+// var timeline1 = []; // create timeline
+
+// REMOVE
+// var preload = { // preload the images
+//     type: jsPsychPreload,
+//     images: ['assets/img/shape.png', // path from html
+//         'assets/img/tova_up.png',
+//         'assets/img/tova_down.png']
+// };
+// timeline.push(preload); // same than practice
+
+var review_fullscreenOn = { // fullscreen mode
+    type: jsPsychFullscreen,
+    message: review_str,
+    fullscreen_mode: true,
+    button_label: "Begin Task",
+    on_finish: function(data){ // change color to black and wait post_instructions_time ms before getting to the first block
+        document.body.style.backgroundColor = '#000000';
+        jsPsych.pauseExperiment();
+        setTimeout(jsPsych.resumeExperiment, post_instructions_time);
+    }
+};
+timeline.push(review_fullscreenOn);
+
+// var browsercheck = { // get browser data
+//     type: jsPsychBrowserCheck, // allows to have data on screen width, heigth, browser used, see https://www.jspsych.org/7.2/plugins/browser-check/
+//     skip_features: ['webaudio', 'webcam', 'microphone']
+// };
+// timeline.push(browsercheck);
+
+// ########################################################################
+// ### define stimuli + their inner variables and trial + its procedure ###
+// ########################################################################
+
+var stimuli = [
+    { // represents 0 in practice_array
+        stimulus: tova_down,
+        stim_img: 'shapedown',
+        expected_response: '0',
+        condition: 'NoGo'
+    },
+    { // represents 1 in practice_array
+        stimulus: tova_up,
+        stim_img: 'shapeup',
+        expected_response: '1',
+        condition: 'Go'
+    }
+];
+var trial = {
+    type: jsPsychHtmlKeyboardResponse, // this records RT from the begining of the stim onset, see "../vendor/plugin-html-keyboard-response.js"
+    stimulus: jsPsych.timelineVariable('stimulus'), // this will show the 'stimulus'
+    choices: [' '], // this is the array of choices
+    stimulus_duration: pres_time, // this is the stimulus presentation
+    trial_duration: soa, // this is the soa
+    response_ends_trial: false, // false means when a response is done, the trial is not stopping
+    prompt: function() {
+        if (show_fixcross_array[1])
+            return (fixation_cross); // this show the fixation cross all along
+    },
+    data: {
+        block: '', // is modified at the begining of the block/timeline, see block.on_timeline_start
+        condition: jsPsych.timelineVariable('condition'),
+        expected_response: jsPsych.timelineVariable('expected_response'),
+        effective_response: '', // is modified at the end of each trial, see "'on_finish' below
+    },
+    on_finish: function (data) {
+        // give to data.stimulus the right label
+        data.stimulus = jsPsych.timelineVariable('stim_img');
+        // read data.response (= array of key) to give the right number to effective_response
+        if (data.response.length >= 2) {
+            data.effective_response = 2; // 2 = multiple responses
+        } else {
+            if (data.response[0]) {
+                data.effective_response = 1; // 1 = pressed space
+            } else {
+                data.effective_response = 0; // 0 = refrained
+            }
+        }
+        // compute data.correct
+        data.correct = (data.expected_response == data.effective_response);
+    }
+};
+
+// ####################################################################
+// ### for loop on fixed_blocks_array to create blocks and feedback ###
+// ####################################################################
+
+for (let i = 0; i < fixed_blocks_array.length; i++){
+    // create block 
+    var block = {
+        timeline_variables: stimuli,
+        timeline: [trial], // needs to be an array
+        on_timeline_start: function () {
+            trial.data.block = block_type[i]; // change block name to block_type[i]
+            feedback_color_array[1] ? feedback_color = true : feedback_color = false;
+        },
+        sample: {
+            type: 'custom',
+            fn: function () {
+                // return fixed_blocks_array[i];
+                return [0,1]; // for debugging
+            }
+        },
+    }
+    timeline.push(block);
+
+    // debrief block
+    var debrief_block = {
+        type: jsPsychHtmlKeyboardResponse,
+        choices: [' '],
+        prompt: function () {
+            let trials = jsPsych.data.get().filter({ block: block_type[i] });
+            let go_trials = trials.filter({ condition: 'Go' });
+            let nogo_trials = trials.filter({ condition: 'NoGo' });
+            let correct_trials = trials.filter({ correct: true });
+            let correct_go_trials = correct_trials.filter({ condition: 'Go' });
+            let correct_nogo_trials = correct_trials.filter({ condition: 'NoGo' });
+            let go_accuracy = Math.round(correct_go_trials.count() / go_trials.count() * 100);
+            let nogo_accuracy = Math.round(correct_nogo_trials.count() / nogo_trials.count() * 100);
+            let correct_go_rt = Math.round(correct_go_trials.select('rt').mean());
+            if (i === fixed_blocks_array.length - 1) {
+                return `${endblock_str1}${go_accuracy}${endblock_str2}${nogo_accuracy}${endblock_str4}`;
+            }
+            return `${endblock_str1}${go_accuracy}${endblock_str2}${nogo_accuracy}${endblock_str3}`;
+        },
+        on_start: function() {
+            document.body.style.backgroundColor = '#202020'; // back to grey
+        },
+        on_finish: function(data){ // wait post_instructions_time ms before getting to the next block
+            document.body.style.backgroundColor = '#000000'; // back to black
+            jsPsych.pauseExperiment();
+            setTimeout(jsPsych.resumeExperiment, post_instructions_time);
+        }
+    };
+    timeline.push(debrief_block);    
+}
+
+// ############################
+// ### exit fullscreen mode ###
+// ############################
+
+timeline.push({
+    type: jsPsychFullscreen,
+    fullscreen_mode: false,
+    on_finish: function (data) {
+        // document.body.innerHTML = completion_code_str; // enable to show completion_code_str
+        // document.body.innerHTML = inlab_final_str; 
+        document.body.innerHTML = classic_end_str
+        // BACKEND - WHAT DO YOU WANT TO BE DISPLAYED AT THE END OF THE TASK ?
+
+        const date = new Date();
+        const month = date.getMonth() + 1 < 10 ? ("0" + (date.getMonth() + 1)) : (date.getMonth() + 1).toString();
+        const day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate().toString();
+        const final = jsPsych.data.get();
+
+        console.log(final.csv());
+        final.localSave('csv', data.subject_id + "_blTova_task_" + date.getFullYear() + month + day + ".csv"); // BACKEND MUST SAVE FINAL.CSV() AT THIS POINT
+        window.onbeforeunload = null; // disable the prevention
+    }
+});
+
+jsPsych.run(timeline); 
