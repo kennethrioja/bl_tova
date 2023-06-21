@@ -65,11 +65,11 @@ const   post_instructions_time = 2000; // time to wait after instruction to begi
 // ### task monitoring ###
 // #######################
 
-const   show_fixcross_array = [true, false]; // true = show fixation cross. First one is for practice, second is for main task
-const   feedback_color_array = [true, false]; // true = your fixation cross become green for correct answers or red for incorrect, for no-go trials the fixation cross becomes green 250ms before the end of the trial. First one is for practice, second is for main task
+const   show_fixcross_array = [true, false]; // manually set this here. true = show fixation cross. First one is for practice, second is for main task
+const   feedback_color_array = [true, false]; // manually set this here. true = your fixation cross become green for correct answers or red for incorrect, for no-go trials the fixation cross becomes green 250ms before the end of the trial. First one is for practice, second is for main task
 var     feedback_color = false; // true = changes fixation cross to green/red depending of correct/incorrect response at the end of each trial, see plugin-html-keyboard-response.js. This global variable will be updated (var not const) depending on feedback_color_array and is needed to communicate with plugin-html-keyboard-response.js.
-const   ask_for_id = false; // true = displays a form asking for subject id, study id and session id. BACKEND : set to false when you can retreive the following variables, for example though the URL. The latter MUST CONTAIN '?PROLIFIC_PID=*&STUDY_ID=*&SESSION_ID=*' with '*' being the corresponding values to variables.
-var     do_practice = true; // true = do practice, false = don't. BACKEND : can be a way to skip practice if problem during task, that's why it is 'var' and not 'const'.
+const   ask_for_id = false; // manually set this here. true = displays a form asking for subject id, study id and session id. BACKEND : set to false when you can retreive the following variables, for example though the URL. The latter MUST CONTAIN '?PROLIFIC_PID=*&STUDY_ID=*&SESSION_ID=*' with '*' being the corresponding values to variables.
+var     do_practice = true; // manually set this here. true = do practice, false = don't. BACKEND : can be a way to skip practice if problem during task, that's why it is 'var' and not 'const'.
 var     repeat_practice = []; // array containing either 1 (= practice must be repeated), or 0 (= practice is not repeated). Relevent when do_practice = true, it stores whether the participant needs to repeat the practice or not. Rule : if 3 correct responses over 5 then pass, otherwise repeat and allow 2 repetitions then pass anyway. See repeat_prac_conditional to see ending loop.
 
 // strings templates
@@ -245,8 +245,6 @@ if (!ask_for_id) {
             get_subject_id ?
                 jsPsych.data.addProperties({ subject_id: get_subject_id })
                 : jsPsych.data.addProperties({ subject_id: data.response.survey_subject_id });
-            // console.log(jsPsych.data.get().last(1).values()[0]);
-            // console.log(data.subject_id);
             get_study_id ?
                 jsPsych.data.addProperties({ study_id: get_study_id })
                 : jsPsych.data.addProperties({ study_id: data.response.survey_study_id });
@@ -391,7 +389,6 @@ var block_practice = {
     timeline_variables: stimuli_practice,
     timeline: [trial_practice], // needs to be an array
     on_timeline_start: function () {
-        console.log("begins");
         trial_practice.data.block = 'practice';
         feedback_color_array[0] ? feedback_color = true : feedback_color = false; // global variable that will be set for each block. True = colored fixation cross depending on correct/incorrect at the end of each trial, see plugin-html-keyboard-response.js. 
     },
@@ -413,7 +410,7 @@ var repeat_prac_message = { // https://www.youtube.com/watch?v=LP7o0iAALik
     stimulus: endblock_practice_str4,
     on_start: function () {
         document.body.style.backgroundColor = '#202020'; // back to grey
-        document.body.style.cursor = 'block'; // display cursor during instructions
+        document.body.style.cursor = 'auto'; // display cursor during instructions
     },
     on_finish: function () {
         document.body.style.backgroundColor = '#000000'; // back to black
@@ -427,10 +424,8 @@ var repeat_prac_conditional = {
     conditional_function: function() {
         const trials_practice = jsPsych.data.get().filter({ block: 'practice' }).last(5); // get last 5 practice trials
         const n_correct_trials_practice = trials_practice.filter({ correct: 1 }).count(); // count only the true last 5 practice trials
-        console.log(n_correct_trials_practice);
         if (n_correct_trials_practice < 3 && repeat_practice.length < 2) {// if not more than 3 correct trials and we allow 2 repetitions , repeat_prac_conditional = true, meaning practice is repeated.
             repeat_practice.push(true);
-            console.log(repeat_practice);
             return true; 
         } else {
             repeat_practice.push(false);
@@ -446,7 +441,7 @@ var prac_loop = {
             return true;
         } else {
             document.body.style.backgroundColor = '#202020'; // back to grey
-            document.body.style.cursor = 'block'; // display cursor during instructions
+            document.body.style.cursor = 'auto'; // display cursor during instructions
         
             const date = new Date();
             const month = date.getMonth() + 1 < 10 ? ('0' + (date.getMonth() + 1)) : (date.getMonth() + 1).toString();
@@ -571,7 +566,7 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
             const trials = jsPsych.data.get().filter({ block: block_type[i] });
             const go_trials = trials.filter({ condition: 'Go' });
             const nogo_trials = trials.filter({ condition: 'NoGo' });
-            const correct_trials = trials.filter({ correct: true });
+            const correct_trials = trials.filter({ correct: 1 });
             const correct_go_trials = correct_trials.filter({ condition: 'Go' });
             const correct_nogo_trials = correct_trials.filter({ condition: 'NoGo' });
             const go_accuracy = Math.round(correct_go_trials.count() / go_trials.count() * 100);
@@ -584,7 +579,7 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
         },
         on_start: function() {
             document.body.style.backgroundColor = '#202020'; // back to grey
-            document.body.style.cursor = 'block'; // display cursor during instructions
+            document.body.style.cursor = 'auto'; // display cursor during instructions
         },
         on_finish: function(data){ // wait post_instructions_time ms before getting to the next block
             document.body.style.backgroundColor = '#000000'; // back to black
