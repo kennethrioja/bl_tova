@@ -46,7 +46,7 @@ const   tova_down = `
 const   fixation_cross = `
                             <div class='fixcross' id='cross'>+</div>
                             `; // to change its size, see 'assets/css/style.css'
-const   practice_array = [1, 1, 0, 1, 0]; // 1 for go, 0 for no go – modify this array to suit your needs
+const   practice_array = [0,1,1,0,1]; // 1 for go, 0 for no go
 const   block_type = ['SA', 'IC']; // fixed order, sustained attention then inhibitory control. Note : those are the names under the column 'block', they are not used for functional code - esthetic only
 const   fixed_80_block_01_sa = [0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,1,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0]; // fixed 80 SA (20% go / 80% nogo) block was computed through this function : lines 145-174 from https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js.
 const   fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,1,1,1,1,1]; // fixed 40 IC (80% go / 20% nogo) block was computed through this : lines 145-174 https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js
@@ -56,7 +56,8 @@ const   show_fixcross_array = [true, false]; // true = show fixation cross. Firs
 const   feedback_color_array = [true, false]; // set for each block, if you want a colored feedback on your fixation cross. First one is for practice, second is for main task
 var     feedback_color = false; // this global variable will be updated depending on feedback_color_array. True = changes fixation cross to green/red depending of correct/incorrect response at the end of each trial, see plugin-html-keyboard-response.js
 const   ask_for_id = true; // true = displays a form asking for subject id, study id and session id. BACKEND : if false the URL MUST CONTAIN '?PROLIFIC_PID=*&STUDY_ID=*&SESSION_ID=*' with '*' being the corresponding values to variables.
-var     do_practice = false; // true = do practice, false = don't. BACKEND : can be a way to skip practice if problem during task.
+var     do_practice = true; // true = do practice, false = don't. BACKEND : can be a way to skip practice if problem during task.
+var     redo_practice = true; // MUST BE TRUE BY DEFAULT, it is updated when finish practice trial to false if ok. if strictly less than 3 correct trials then true = redo practice, false = don't. 
 
 // strings
 function showHideDiv(hide, show) { // see review_str
@@ -89,6 +90,13 @@ const   endblock_practice_str2 = `
 const   endblock_practice_str3 = `
                                 %</p>
                                 <p>Press the spacebar to continue.</p>
+                                `;
+const   endblock_practice_str4 = `
+                                %</p>
+                                <p>We will go through another practice block. Please be as accurate as possible.</p>
+                                <p>If the shape is presented at the TOP, please press the spacebar.</p>
+                                <p>If the shape is presented at the BOTTOM, don’t press the spacebar.</p>
+                                <p>Press the spacebar to continue.<p>
                                 `;
 const   review_str = `
                         <div id='review' style='display:block;'>
@@ -361,64 +369,71 @@ var trial_practice = {
     }
 };
 
-// ##################################
-// ### create blocks and feedback ###
-// ##################################
+// ###########################################
+// ### create practice blocks and feedback ###
+// ###########################################
 
-// create block 
-var block_practice = {
-    timeline_variables: stimuli_practice,
-    timeline: [trial_practice], // needs to be an array
-    on_timeline_start: function () {
-        trial_practice.data.block = 'practice';
-        feedback_color_array[0] ? feedback_color = true : feedback_color = false; // global variable that will be set at each block. True = colored fixation cross depending on correct/incorrect at the end of each trial, see plugin-html-keyboard-response.js. 
-    },
-    sample: {
-        type: 'custom',
-        fn: function () {
-            return practice_array;
+for (let i = 0; (i < 3 && redo_practice); i++) {
+    // create block 
+    var block_practice = {
+        timeline_variables: stimuli_practice,
+        timeline: [trial_practice], // needs to be an array
+        on_timeline_start: function () {
+            trial_practice.data.block = 'practice';
+            feedback_color_array[0] ? feedback_color = true : feedback_color = false; // global variable that will be set at each block. True = colored fixation cross depending on correct/incorrect at the end of each trial, see plugin-html-keyboard-response.js. 
+        },
+        sample: {
+            type: 'custom',
+            fn: function () {
+                return practice_array;
+            }
         }
-    },
-}
-do_practice ? timeline.push(block_practice) : null;
-
-// debrief block
-var debrief_block_practice = {
-    type: jsPsychHtmlKeyboardResponse,
-    choices: [' '],
-    prompt: function () {
-        const trials_practice = jsPsych.data.get().filter({ block: 'practice' });
-        const go_trials_practice = trials_practice.filter({ condition: 'Go' });
-        const nogo_trials_practice = trials_practice.filter({ condition: 'NoGo' });
-        const correct_trials_practice = trials_practice.filter({ correct: true });
-        const correct_go_trials_practice = correct_trials_practice.filter({ condition: 'Go' });
-        const correct_nogo_trials_practice = correct_trials_practice.filter({ condition: 'NoGo' });
-        const go_accuracy_practice = Math.round(correct_go_trials_practice.count() / go_trials_practice.count() * 100);
-        const nogo_accuracy_practice = Math.round(correct_nogo_trials_practice.count() / nogo_trials_practice.count() * 100);
-        const correct_go_rt_practice = Math.round(correct_go_trials_practice.select('rt').mean());
-        return `${endblock_practice_str1}${go_accuracy_practice}${endblock_practice_str2}${nogo_accuracy_practice}${endblock_practice_str3}`;
-    },
-    on_start: function () {
-        document.body.style.backgroundColor = '#202020'; // back to grey
-    },
-    on_finish: function (data) { // wait post_instructions_time ms before getting to the next block
-        jsPsych.pauseExperiment();
-        setTimeout(jsPsych.resumeExperiment, post_instructions_time);
-
-        const date = new Date();
-        const month = date.getMonth() + 1 < 10 ? ('0' + (date.getMonth() + 1)) : (date.getMonth() + 1).toString();
-        const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate().toString();
-        const final = jsPsych.data.get();
-        console.log(final.csv()); // can be removed
-        final.localSave('csv', data.subject_id + '_blTova_practice_' + date.getFullYear() + month + day + '.csv'); // BACKEND : need to save this csv
-        // window.location.replace('../../bl_tova/index.html?PROLIFIC_PID=' + data.subject_id + '&STUDY_ID=' + data.study_id + '&SESSION_ID=' + data.session_id); // autoredirects to task, whenever the folder of the practice is at the same level than the folder of the task, no need to now
     }
+    do_practice ? timeline.push(block_practice) : null;
+
+    // debrief block
+    var debrief_block_practice = {
+        type: jsPsychHtmlKeyboardResponse,
+        choices: [' '],
+        prompt: function () {
+            const trials_practice = jsPsych.data.get().filter({ block: 'practice' });
+            const go_trials_practice = trials_practice.filter({ condition: 'Go' });
+            const nogo_trials_practice = trials_practice.filter({ condition: 'NoGo' });
+            const correct_trials_practice = trials_practice.filter({ correct: true });
+            const correct_go_trials_practice = correct_trials_practice.filter({ condition: 'Go' });
+            const correct_nogo_trials_practice = correct_trials_practice.filter({ condition: 'NoGo' });
+            const go_accuracy_practice = Math.round(correct_go_trials_practice.count() / go_trials_practice.count() * 100);
+            const nogo_accuracy_practice = Math.round(correct_nogo_trials_practice.count() / nogo_trials_practice.count() * 100);
+            const correct_go_rt_practice = Math.round(correct_go_trials_practice.select('rt').mean());
+            if (correct_go_trials_practice >= 3) { // if succeeded on practice
+                redo_practice = false;
+                return `${endblock_practice_str1}${go_accuracy_practice}${endblock_practice_str2}${nogo_accuracy_practice}${endblock_practice_str4}`;
+            } else {
+                redo_practice = true;
+                return `${endblock_practice_str1}${go_accuracy_practice}${endblock_practice_str2}${nogo_accuracy_practice}${endblock_practice_str3}`;
+            }
+            
+        },
+        on_start: function () {
+            document.body.style.backgroundColor = '#202020'; // back to grey
+        },
+        on_finish: function (data) { // wait post_instructions_time ms before getting to the next block
+            jsPsych.pauseExperiment();
+            setTimeout(jsPsych.resumeExperiment, post_instructions_time);
+
+            if (redo_practice) { return ; } // if needs to redo practice, then go for next practice trial
+
+            const date = new Date();
+            const month = date.getMonth() + 1 < 10 ? ('0' + (date.getMonth() + 1)) : (date.getMonth() + 1).toString();
+            const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate().toString();
+            const final = jsPsych.data.get();
+            console.log(final.csv()); // can be removed
+            final.localSave('csv', data.subject_id + '_blTova_practice_' + date.getFullYear() + month + day + '.csv'); // BACKEND : need to save this csv
+            // window.location.replace('../../bl_tova/index.html?PROLIFIC_PID=' + data.subject_id + '&STUDY_ID=' + data.study_id + '&SESSION_ID=' + data.session_id); // autoredirects to task, whenever the folder of the practice is at the same level than the folder of the task, no need to now
+        }
+    }
+    do_practice ? timeline.push(debrief_block_practice) : null;
 }
-
-do_practice ? timeline.push(debrief_block_practice) : null;
-
-jsPsych.run(timeline);
-
 
 // ###############################
 // ########## MAIN TASK ##########
