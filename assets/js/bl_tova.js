@@ -1,20 +1,40 @@
-// Title : JS script for ToVA
+// Title : JS script for ToVA (practice & task)
 // Author : kenneth.rioja@unige.ch
 // Date : 19.06.2023
+
+// #######################
+// ### input variables ###
+// #######################
+
+// input variables to get from calibration : either by injecting data, or modify them manually here
+const   monitorsize = 13.3; // monitor diagonal in inch
+const   pxperdeg = 52; // pixel per degree computed in calibration
+
+// prolific_pid, study_id and session_id to get from url, see get_subject_id variable
+
+// ################################
+// ### compute stim width in px ###
+// ################################
+
+const   distance_cm = 60; // eyes/screen distance in cm
+const   monitor_width_px = window.outerWidth; // monitor width in px
+const   monitor_height_px = window.outerHeight; // monitor height in px
+const   monitorsize_cm = monitorsize * 2.54 // inch to cm
+const   stim_diag_cm = monitorsize_cm * 0.15 // stim diag in cm is 15% of monitorsize, 6.75cm
+const   stim_width_cm = stim_diag_cm * Math.sqrt(2); // stim width in cm (shape.png is a 500x500 square)
+const   stim_width_rad = 2 * Math.atan((stim_width_cm / 2) / distance_cm); // stimulus width in radian
+const   stim_width_deg = stim_width_rad * 180 / Math.PI; // stimulus width in degrees
+const   stim_width_px = stim_width_deg * pxperdeg; // stim width in px from real monitor size in cm
+const   stim_diag_px = stim_width_px * Math.sqrt(2); // stim diagonal in px
 
 // ############################
 // ### experiment variables ###
 // ############################
 // based on Denkinger Sylvie's 'TOVA_parameters_2023' excel sheet 
 
-const   pres_time = 250; // stimulus presentation time
-const   soa = 2000; // duration between the onset of two consecutive stimuli
+const   pres_time = 250; // stimulus presentation time in ms
+const   soa = 4100; // duration in ms between the onset of two consecutive stimuli. In the original ACE-X TOVA, they have a 2000ms response-window. To be alligned with them, when analysing data, be sure that responses after 2000ms are not counted and treated as anticipatory responses.
 // const isi = soa - pres_time; // inter stimulus interval, NOT USE IN THE CODE
-const   width_px = window.outerWidth; // check https://www.jspsych.org/7.2/plugins/virtual-chinrest/
-const   height_px = window.outerHeight;
-const   d_px = Math.sqrt(width_px * width_px + height_px * height_px);
-const   stim_diag_px = d_px * 0.2;
-const   stim_width_px = width_px * 0.2; // in px, if needed check https://www.jspsych.org/7.2/plugins/resize/
 const   root_path = './';
 // const root_path = 'https://s3.amazonaws.com/BavLab/TOVA/'; // BACKEND TO CHOOSE
 const   tova_up = `
@@ -23,15 +43,12 @@ const   tova_up = `
 const   tova_down = `
                     <div class='down' id='shape'><img src='${root_path}assets/img/shape.png' style='width:${stim_width_px}px'></img></div>
                     `; // id='shape' is mandatory, without it it won't work, see plugin-html-keyboard-response.js
-// background color = black, see 'assets/css/style.css'
 const   fixation_cross = `
                             <div class='fixcross' id='cross'>+</div>
                             `; // to change its size, see 'assets/css/style.css'
 const   practice_array = [1, 1, 0, 1, 0]; // 1 for go, 0 for no go – modify this array to suit your needs
 const   block_type = ['SA', 'IC']; // fixed order, sustained attention then inhibitory control. Note : those are the names under the column 'block', they are not used for functional code - esthetic only
-const   fixed_80_block_01_sa = [0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,1,0,0,0,0,1,0,0,1,0,1,0,0,0,1]; // fixed 80 SA (20% go / 80% nogo) block was computed through this function : lines 145-174 from https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js. 1) Multiple sequences were computed, 2) 3 were selected by hand while having in mind to keep a distributed distribution of 1 across the entire block, 3) the selection of the chosen block was done with SD and DB
-// 0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1,0,1,1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,0,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0
-// 0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,1,0,0,0,1
+const   fixed_80_block_01_sa = [0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,1,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0]; // fixed 80 SA (20% go / 80% nogo) block was computed through this function : lines 145-174 from https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js. 1) Multiple sequences were computed, 2) 3 were selected by hand while having in mind to keep a distributed distribution of 1 across the entire block, 3) the selection of the chosen block was done with SD and DB
 const   fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,1,1,1,1,1]; // fixed 40 IC (80% go / 20% nogo) block was computed through this : lines 145-174 https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js, selection was made the same than for SA.
 // 1,0,1,1,1,1,1,1,0,1,0,1,0,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1
 // 1,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,0,1
@@ -41,8 +58,7 @@ const   show_fixcross_array = [true, false]; // true = show fixation cross. Firs
 const   feedback_color_array = [true, false]; // set for each block, if you want a colored feedback on your fixation cross. First one is for practice, second is for main task
 var     feedback_color = false; // this global variable will be updated depending on feedback_color_array. True = changes fixation cross to green/red depending of correct/incorrect response at the end of each trial, see plugin-html-keyboard-response.js
 const   ask_for_id = true; // true = displays a form asking for subject id, study id and session id. BACKEND : if false the URL MUST CONTAIN '?PROLIFIC_PID=*&STUDY_ID=*&SESSION_ID=*' with '*' being the corresponding values to variables.
-var     do_practice = true; // true = do practice, false = don't. Can be a way to skip practice if problem during task.
-
+var     do_practice = false; // true = do practice, false = don't. BACKEND : can be a way to skip practice if problem during task.
 
 // strings
 function showHideDiv(hide, show) { // see review_str
@@ -175,7 +191,7 @@ var jsPsych = initJsPsych();
 
 var timeline = []; // create timeline
 
-// capture info from Prolific through the URL
+// input variables to get from url
 const get_subject_id = jsPsych.data.getURLVariable('PROLIFIC_PID');
 const get_study_id = jsPsych.data.getURLVariable('STUDY_ID');
 const get_session_id = jsPsych.data.getURLVariable('SESSION_ID');
@@ -188,7 +204,8 @@ if (!ask_for_id) {
         session_id: get_session_id,
         presentation_time: pres_time,
         soa: soa,
-        stimulus_diagonal_in_px: stim_diag_px
+        stimulus_diagonal_in_px: stim_diag_px,
+        stimulus_diagonal_in_cm: stim_diag_cm
     });
 } else { // otherwise if you asked for entring manually the IDs
     var pp_id = {
@@ -221,7 +238,10 @@ if (!ask_for_id) {
             jsPsych.data.addProperties({
                 presentation_time: pres_time,
                 soa: soa,
-                stimulus_diagonal: stim_diag_px
+                monitorsize_inch: monitorsize,
+                pxperdeg: pxperdeg,
+                stimulus_diagonal_px: stim_diag_px,
+                stimulus_diagonal_cm: stim_diag_cm
             });
         }
     };
@@ -249,9 +269,10 @@ var browsercheck = { // get browser data
 };
 timeline.push(browsercheck);
 
-// ################
-// ### PRACTICE ###
-// ################
+
+// ##############################
+// ########## PRACTICE ##########
+// ##############################
 
 // ####################
 // ### instructions ###
@@ -392,66 +413,18 @@ var debrief_block_practice = {
         const final = jsPsych.data.get();
         console.log(final.csv()); // can be removed
         final.localSave('csv', data.subject_id + '_blTova_practice_' + date.getFullYear() + month + day + '.csv'); // BACKEND : need to save this csv
-        // window.onbeforeunload = null; // disables the prevention, no need to now
         // window.location.replace('../../bl_tova/index.html?PROLIFIC_PID=' + data.subject_id + '&STUDY_ID=' + data.study_id + '&SESSION_ID=' + data.session_id); // autoredirects to task, whenever the folder of the practice is at the same level than the folder of the task, no need to now
     }
 }
 
 do_practice ? timeline.push(debrief_block_practice) : null;
 
-// ############################
-// ### exit fullscreen mode ###
-// ############################
-
-// timeline.push({
-//     type: jsPsychFullscreen,
-//     fullscreen_mode: false,
-//     delay_after: 0,
-//     on_finish: function (data) {
-//         const date = new Date();
-//         const month = date.getMonth() + 1 < 10 ? ('0' + (date.getMonth() + 1)) : (date.getMonth() + 1).toString();
-//         const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate().toString();
-//         const final = jsPsych.data.get();
-//         console.log(final.csv()); // can be removed
-//         final.localSave('csv', data.subject_id + '_blTova_practice_' + date.getFullYear() + month + day + '.csv'); // BACKEND : need to save this csv
-//         window.onbeforeunload = null; // disables the prevention
-//         // window.location.replace('../../bl_tova/index.html?PROLIFIC_PID=' + data.subject_id + '&STUDY_ID=' + data.study_id + '&SESSION_ID=' + data.session_id); // autoredirects to task, whenever the folder of the practice is at the same level than the folder of the task
-//     }
-// });
-
 jsPsych.run(timeline);
 
-// #################
-// ### MAIN TASK ###
-// #################
 
-// var jsPsych = initJsPsych();
-
-// // capture info from Prolific through the URL
-// var subject_id = jsPsych.data.getURLVariable('PROLIFIC_PID');
-// var study_id = jsPsych.data.getURLVariable('STUDY_ID');
-// var session_id = jsPsych.data.getURLVariable('SESSION_ID');
-
-// // add variables to data
-// jsPsych.data.addProperties({
-//     subject_id: subject_id,
-//     study_id: study_id,
-//     session_id: session_id,
-//     presentation_time: pres_time,
-//     soa: soa,
-//     stimulus_diagonal_in_px: stim_diag_px
-// });
-
-// var timeline1 = []; // create timeline
-
-// REMOVE
-// var preload = { // preload the images
-//     type: jsPsychPreload,
-//     images: ['assets/img/shape.png', // path from html
-//         'assets/img/tova_up.png',
-//         'assets/img/tova_down.png']
-// };
-// timeline.push(preload); // same than practice
+// ###############################
+// ########## MAIN TASK ##########
+// ###############################
 
 var review_fullscreenOn = { // fullscreen mode
     type: jsPsychFullscreen,
@@ -465,12 +438,6 @@ var review_fullscreenOn = { // fullscreen mode
     }
 };
 timeline.push(review_fullscreenOn);
-
-// var browsercheck = { // get browser data
-//     type: jsPsychBrowserCheck, // allows to have data on screen width, heigth, browser used, see https://www.jspsych.org/7.2/plugins/browser-check/
-//     skip_features: ['webaudio', 'webcam', 'microphone']
-// };
-// timeline.push(browsercheck);
 
 // ########################################################################
 // ### define stimuli + their inner variables and trial + its procedure ###
@@ -540,7 +507,48 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
         },
         sample: {
             type: 'custom',
-            fn: function () {
+            fn: function () { // SA (20/80, 50% of targets in first half then 50% on second half, with no more than 2 consecutive targets)
+                var n_tot = 80;
+                var n_gotrials = n_tot * 0.2; // 1
+                var n_nogotrials = n_tot * 0.8; // 0
+                
+                var arr = [];
+                function rand50() {
+                    return Math.floor(Math.random() * 10) & 1;
+                }
+                function rand75() { // https://www.geeksforgeeks.org/generate-0-1-25-75-probability/
+                    return +!(!rand50() | !rand50());
+                }
+                while (arr.length < n_tot) {
+                    var rdm = rand75();
+                    if (arr.length == 0) { // first trial is nogo for SA
+                        arr.push(0);
+                        n_nogotrials--;
+                    } else if (arr[arr.length - 2] == 1 
+                                && arr[arr.length - 1] == 1 
+                                && n_nogotrials > 0) { // if two previous trials where go, push a no-go = not more than 2 go in a row
+                        arr.push(0);
+                        n_nogotrials--;
+                    } else if (rdm == 1 && n_gotrials > 0
+                                && ((n_gotrials >= 8 && arr.length < 40)
+                                || (n_gotrials < 8 && arr.length > 40))
+                                ) { // 50% of target in first half and the remaining in the second half
+                        arr.push(rdm);
+                        n_gotrials--;
+                    } else if (rdm == 0 && n_nogotrials > 0
+                                && ((n_nogotrials >= 32 && arr.length <= 40)
+                                || (n_nogotrials < 32 && arr.length >= 40))
+                                ) { // 50% of non-target in first half and the remaining in the second half
+                        arr.push(rdm);
+                        n_nogotrials--;
+                    }
+                }
+                console.log(arr.length);
+                console.log(arr.reduce((accumulator, currentValue) => {
+                    return accumulator + currentValue
+                }, 0)); //https://www.freecodecamp.org/news/how-to-add-numbers-in-javascript-arrays/
+                console.log(arr.toString());
+
                 // return fixed_blocks_array[i];
                 return [0,1,1,0]; // for debugging
             }
