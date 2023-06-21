@@ -57,7 +57,7 @@ const   feedback_color_array = [true, false]; // set for each block, if you want
 var     feedback_color = false; // this global variable will be updated depending on feedback_color_array. True = changes fixation cross to green/red depending of correct/incorrect response at the end of each trial, see plugin-html-keyboard-response.js
 const   ask_for_id = true; // true = displays a form asking for subject id, study id and session id. BACKEND : if false the URL MUST CONTAIN '?PROLIFIC_PID=*&STUDY_ID=*&SESSION_ID=*' with '*' being the corresponding values to variables.
 var     do_practice = true; // true = do practice, false = don't. BACKEND : can be a way to skip practice if problem during task.
-var     redo_practice = true; // MUST BE TRUE BY DEFAULT, it is updated when finish practice trial to false if ok. if strictly less than 3 correct trials then true = redo practice, false = don't. 
+var     repeat_practice = []; // Array containing either 1 = practice must be repeated, or 0 = practice is not repeated. Rule : if 3 correct pass, otherwise repeat and allow 2 repetitions then pass. See repeat_prac_conditional to see ending loop.
 
 // strings
 function showHideDiv(hide, show) { // see review_str
@@ -92,15 +92,14 @@ const   endblock_practice_str3 = `
                                 <p>Press the spacebar to continue.</p>
                                 `;
 const   endblock_practice_str4 = `
-                                %</p>
-                                <p>We will go through another practice block. Please be as accurate as possible.</p>
+                                <p>You will go through another practice block. Please be as accurate as possible.</p>
                                 <p>If the shape is presented at the TOP, please press the spacebar.</p>
                                 <p>If the shape is presented at the BOTTOM, don’t press the spacebar.</p>
                                 <p>Press the spacebar to continue.<p>
                                 `;
 const   review_str = `
                         <div id='review' style='display:block;'>
-                        <p>We are ready for the task now.</p>
+                        <p>You are ready for the task now.</p>
                         <p>Please press "Instructions" if you want a refresher, otherwise "Begin Task".</p>
                         <input type='button' value='Instructions' class='jspsych-btn' style="color:grey; background-color:#303030" onClick="showHideDiv('review', 'refresher')"/>
                         </div>
@@ -316,9 +315,9 @@ var instructions = {
 }
 do_practice ? timeline.push(instructions) : null;  // ternary to say to do push this in the timeline if we want to go through the practice
 
-// ########################################################################
-// ### define stimuli + their inner variables and trial + its procedure ###
-// ########################################################################
+// ##################################################################################
+// ### Practice : define stimuli + their inner variables and trial + its timeline ###
+// ##################################################################################
 
 var stimuli_practice = [
     { // represents 0 in practice_array
@@ -334,6 +333,7 @@ var stimuli_practice = [
         condition: 'Go'
     }
 ];
+
 var trial_practice = {
     type: jsPsychHtmlKeyboardResponse, // this records RT from the begining of the stim onset, see '../vendor/plugin-html-keyboard-response.js'
     stimulus: jsPsych.timelineVariable('stimulus'), // this will show the 'stimulus'
@@ -341,15 +341,15 @@ var trial_practice = {
     stimulus_duration: pres_time, // this is the stimulus presentation
     trial_duration: soa, // this is the soa
     response_ends_trial: false, // false means when a response is done, the trial is not stopping
-    prompt: function () {
+    prompt: function () { // this show the fixation cross all along
         if (show_fixcross_array[0])
-            return (fixation_cross); // this show the fixation cross all along
+            return (fixation_cross);
     },
     data: {
-        block: '', // is modified at the begining of the block/timeline, see on_timeline_start
+        block: '', // will be modified at the begining of the block/timeline, see on_timeline_start
         condition: jsPsych.timelineVariable('condition'),
         expected_response: jsPsych.timelineVariable('expected_response'),
-        effective_response: '', // is modified at the end of each trial, see 'on_finish' below
+        effective_response: '', // will be modified at the end of each trial, see 'on_finish' below
     },
     on_finish: function (data) {
         // give to data.stimulus the right label
@@ -369,35 +369,89 @@ var trial_practice = {
     }
 };
 
-// ###########################################
-// ### create practice blocks and feedback ###
-// ###########################################
-
-// create block 
 var block_practice = {
     timeline_variables: stimuli_practice,
     timeline: [trial_practice], // needs to be an array
     on_timeline_start: function () {
+        console.log("begins");
         trial_practice.data.block = 'practice';
         feedback_color_array[0] ? feedback_color = true : feedback_color = false; // global variable that will be set at each block. True = colored fixation cross depending on correct/incorrect at the end of each trial, see plugin-html-keyboard-response.js. 
     },
     sample: {
         type: 'custom',
         fn: function () {
-            if (redo_practice) {
-                return practice_array;
-            }
+            return practice_array;
         }
     }
 }
-do_practice ? timeline.push(block_practice) : null;
 
-// debrief block
+// #####################
+// ### Practice loop ###
+// #####################
+
+var repeat_prac_message = { // https://www.youtube.com/watch?v=LP7o0iAALik
+    type: jsPsychHtmlKeyboardResponse,
+    choices: [' '],
+    stimulus: endblock_practice_str4,
+    on_start: function () {
+        document.body.style.backgroundColor = '#202020'; // back to grey
+    },
+    on_finish: function () {
+        document.body.style.backgroundColor = '#000000';
+        jsPsych.pauseExperiment();
+        setTimeout(jsPsych.resumeExperiment, post_instructions_time);
+    }
+}
+var repeat_prac_conditional = {
+    timeline: [repeat_prac_message],
+    conditional_function: function() {
+        const trials_practice = jsPsych.data.get().filter({ block: 'practice' }).last(5); // get last 5 practice trials
+        const n_correct_trials_practice = trials_practice.filter({ correct: true }).count(); // count only the true last 5 practice trials
+        console.log(n_correct_trials_practice);
+        if (n_correct_trials_practice < 3 && repeat_practice.length < 2) {// if not more than 3 correct trials and we allow 2 repetitions , repeat_prac_conditional = true, meaning practice is repeated.
+            repeat_practice.push(true);
+            console.log(repeat_practice);
+            return true; 
+        } else {
+            repeat_practice.push(false);
+            return false;
+        }
+    }
+}
+
+var prac_loop = {
+    timeline: [block_practice, repeat_prac_conditional],
+    loop_function: function(data) {
+        if (repeat_practice[repeat_practice.length - 1] === true) { // if last practice is true, redo practice
+            return true;
+        } else {
+            document.body.style.backgroundColor = '#202020'; // back to grey
+    
+            const date = new Date();
+            const month = date.getMonth() + 1 < 10 ? ('0' + (date.getMonth() + 1)) : (date.getMonth() + 1).toString();
+            const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate().toString();
+            const final = jsPsych.data.get();
+            console.log(final.csv()); // can be removed
+            console.log(final); // can be removed
+            final.localSave('csv', final.trials[0].subject_id + '_blTova_practice_' + date.getFullYear() + month + day + '.csv'); // BACKEND : need to save this csv
+            // window.location.replace('../../bl_tova/index.html?PROLIFIC_PID=' + data.subject_id + '&STUDY_ID=' + data.study_id + '&SESSION_ID=' + data.session_id); // autoredirects to task, whenever the folder of the practice is at the same level than the folder of the task, no need to now    
+
+            jsPsych.pauseExperiment();
+            setTimeout(jsPsych.resumeExperiment, post_instructions_time);
+
+            return false;
+        }
+    }
+}
+do_practice ? timeline.push(prac_loop) : null;
+
+////////////////////
+
 var debrief_block_practice = {
     type: jsPsychHtmlKeyboardResponse,
     choices: [' '],
     prompt: function () {
-        const trials_practice = jsPsych.data.get().filter({ block: 'practice' });
+        const trials_practice = jsPsych.data.get().filter({ block: 'practice' }).last(5);
         const go_trials_practice = trials_practice.filter({ condition: 'Go' });
         const nogo_trials_practice = trials_practice.filter({ condition: 'NoGo' });
         const correct_trials_practice = trials_practice.filter({ correct: true });
@@ -406,7 +460,7 @@ var debrief_block_practice = {
         const go_accuracy_practice = Math.round(correct_go_trials_practice.count() / go_trials_practice.count() * 100);
         const nogo_accuracy_practice = Math.round(correct_nogo_trials_practice.count() / nogo_trials_practice.count() * 100);
         const correct_go_rt_practice = Math.round(correct_go_trials_practice.select('rt').mean());
-        return `${endblock_practice_str1}${go_accuracy_practice}${endblock_practice_str2}${nogo_accuracy_practice}${endblock_practice_str3}`;
+        // return `${endblock_practice_str1}${go_accuracy_practice}${endblock_practice_str2}${nogo_accuracy_practice}${endblock_practice_str3}`;
     },
     on_start: function () {
         document.body.style.backgroundColor = '#202020'; // back to grey
@@ -424,7 +478,14 @@ var debrief_block_practice = {
         // window.location.replace('../../bl_tova/index.html?PROLIFIC_PID=' + data.subject_id + '&STUDY_ID=' + data.study_id + '&SESSION_ID=' + data.session_id); // autoredirects to task, whenever the folder of the practice is at the same level than the folder of the task, no need to now
     }
 }
-do_practice ? timeline.push(debrief_block_practice) : null;
+
+// ###########################################
+// ### create practice blocks and feedback ###
+// ###########################################
+
+
+
+// do_practice ? timeline.push(debrief_block_practice) : null;
 
 // ###############################
 // ########## MAIN TASK ##########
@@ -435,6 +496,9 @@ var review_fullscreenOn = { // fullscreen mode
     message: review_str,
     fullscreen_mode: true,
     button_label: 'Begin Task',
+    // on_timeline_start: {
+    //     setTimeout(jsPsych.resumeExperiment, post_instructions_time);
+    // },
     on_finish: function(data){ // change color to black and wait post_instructions_time ms before getting to the first block
         document.body.style.backgroundColor = '#000000';
         jsPsych.pauseExperiment();

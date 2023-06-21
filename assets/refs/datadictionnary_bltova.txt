@@ -21,7 +21,7 @@ internal_node_id
 	A string identifier for the current TimelineNode. (https://www.jspsych.org/7.0/overview/plugins/#data-collected-by-all-plugins)
 real_trial_index
 	int
-	created manually - (find '*MODIFIED*' in jspsych.js), real trials are begining with 1, 0 are the pluggins.
+	created manually - (find '*MODIFIED*' in jspsych.js), real trials are begining with 1, 0 are the pluggins – if the participant has done multiple practice blocks, then there should be a 1 and a 2 lying there, do not take it into account. During data cleaning, filter by block and you should have it all ordered by block (from 1 to n_trial).
 width, height, browser, browser_version, mobile, os, fullscreen, vsync_rate
 	https://www.jspsych.org/7.2/plugins/browser-check/#data-generated
 rt

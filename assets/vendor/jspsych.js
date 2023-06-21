@@ -2844,8 +2844,9 @@ var jsPsychModule = (function (exports) {
             return this.timeline.activeID();
         }
         getRealTrialIndex() { // *MODIFIED*
-            if (this.timeline.activeID().split('.').length == 4) {
-                return (parseInt(this.timeline.activeID().split('.')[this.timeline.activeID().split('.').length - 1]) + 1);
+            const activeID_split = this.timeline.activeID().split('.')
+            if (activeID_split.length == 4 || activeID_split.length == 5) {
+                return (parseInt(activeID_split[activeID_split.length - 1]) + 1);
             }
             return (0);
         }
