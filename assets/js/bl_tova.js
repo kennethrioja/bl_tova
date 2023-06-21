@@ -507,41 +507,41 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
         },
         sample: {
             type: 'custom',
-            fn: function () { // SA (20/80, 50% of targets in first half then 50% on second half, with no more than 2 consecutive targets)
-                var n_tot = 80;
-                var n_gotrials = n_tot * 0.2; // 1
-                var n_nogotrials = n_tot * 0.8; // 0
+            fn: function () { // IC (20/80, 50% of targets in first half then 50% on second half, with no more than 2 consecutive targets)
+                var n_tot = 40;
+                var n_gotrials = n_tot * 0.8; // 1
+                var n_nogotrials = n_tot * 0.2; // 0
                 
                 var arr = [];
                 function rand50() {
                     return Math.floor(Math.random() * 10) & 1;
                 }
                 function rand75() { // https://www.geeksforgeeks.org/generate-0-1-25-75-probability/
-                    return +!(!rand50() | !rand50());
+                    return rand50() | rand50();
                 }
                 while (arr.length < n_tot) {
                     var rdm = rand75();
-                    if (arr.length == 0) { // first trial is nogo for SA
-                        arr.push(0);
-                        n_nogotrials--;
-                    } else if (arr[arr.length - 2] == 1 
-                                && arr[arr.length - 1] == 1 
-                                && n_nogotrials > 0) { // if two previous trials where go, push a no-go = not more than 2 go in a row
-                        arr.push(0);
-                        n_nogotrials--;
-                    } else if (rdm == 1 && n_gotrials > 0
-                                && ((n_gotrials >= 8 && arr.length < 40)
-                                || (n_gotrials < 8 && arr.length > 40))
-                                ) { // 50% of target in first half and the remaining in the second half
-                        arr.push(rdm);
+                    if (arr.length == 0) { // first trial is go for IC
+                        arr.push(1);
+                        n_gotrials--;
+                    } else if (arr[arr.length - 2] == 0 
+                                && arr[arr.length - 1] == 0 
+                                && n_gotrials > 0) { // if two previous trials where nogo, push a go = not more than 2 no-go in a row
+                        arr.push(1);
                         n_gotrials--;
                     } else if (rdm == 0 && n_nogotrials > 0
-                                && ((n_nogotrials >= 32 && arr.length <= 40)
-                                || (n_nogotrials < 32 && arr.length >= 40))
+                                && ((n_nogotrials >= 4 && arr.length < 20)
+                                || (n_nogotrials < 4 && arr.length > 20))
                                 ) { // 50% of non-target in first half and the remaining in the second half
                         arr.push(rdm);
                         n_nogotrials--;
-                    }
+                    } else if (rdm == 1 && n_gotrials > 0
+                        && ((n_gotrials > 16 && arr.length <= 20)
+                        || (n_gotrials <= 16 && arr.length >= 20))
+                        ) { // 50% of target in first half and the remaining in the second half
+                        arr.push(rdm);
+                        n_gotrials--;
+                    } 
                 }
                 console.log(arr.length);
                 console.log(arr.reduce((accumulator, currentValue) => {
