@@ -1,31 +1,39 @@
-// Title : JS script for ToVA (practice & task)
-// Author : kenneth.rioja@unige.ch
-// Date : 19.06.2023
+// TITLE : Bavelier Lab 'Task of Variable Attention'-like in Javascript – practice & task (bl_tova.js)
+// VERSION : 0.1.0 (implemented for Naïma Gradi)
+// AUTHOR : Kenneth Rioja
+// EMAIL : kenneth.rioja@unige.ch
+// DATE : 21.06.2023
+// GITLAB LINK : TOADD
+// GITHUB LINK (deprecated) : https://github.com/kennethrioja/bl_tova
+// NOTE FOR RESEARCHERS AND DEVS : Please carefully read the whole section below with global variables + the data dictionnary. If you have any comments, please send me an email. I would love to read from someone who got into this code ! Thanks and have fun ! 
+// NOTE FOR THE PERSON IN CHARGE OF THE BACKEND IMPLEMENTATION : I notified relevant points for you though comments having 'BACKEND' inside them. Please read them before implementing this code.
 
 // #######################
 // ### input variables ###
 // #######################
 
-// input variables to get from calibration : either by injecting data, or modify them manually here
-const   monitorsize = 13.3; // monitor diagonal in inch
-const   pxperdeg = 52; // pixel per degree computed in calibration
+// BACKEND takes care of it though calibration and URL variables
 
-// prolific_pid, study_id and session_id to get from url, see get_subject_id variable
+// 1. to get from calibration either by injecting data or retrieve in local storage
+// const   monitorsize = 13.3; // monitor diagonal in inch
+// const   pxperdeg = 52; // pixel per degree computed in calibration
+
+// 2. to get from URL or other method, PROLIFIC_PID, STUDY_ID and SESSION_ID to get from url, see get_subject_id variable – if not using it then change global variable ask_for_id to false
 
 // ################################
 // ### compute stim width in px ###
 // ################################
 
-const   distance_cm = 60; // eyes/screen distance in cm
+const   distance_cm = 60; // screen/eyes distance in cm
 const   monitor_width_px = window.outerWidth; // monitor width in px
 const   monitor_height_px = window.outerHeight; // monitor height in px
-const   monitorsize_cm = monitorsize * 2.54 // inch to cm
-const   stim_diag_cm = monitorsize_cm * 0.20 // stim diag in cm is 20% of monitorsize
-const   stim_width_cm = stim_diag_cm / Math.sqrt(2); // stim width in cm (shape.png is a 500x500 square)
+const   monitorsize_cm = monitorsize * 2.54 // monitorsize inch to cm
+const   stim_diag_cm = monitorsize_cm * 0.20 // stimulus diagonal in cm is 20% of monitorsize. 1. check that the stimulus is a square, otherwise change formulas below, 2. source said stimulus diagonal is between 15 to 30% of screen diagonal
+const   stim_width_cm = stim_diag_cm / Math.sqrt(2); // stimulus width in cm
 const   stim_width_rad = 2 * Math.atan((stim_width_cm / 2) / distance_cm); // stimulus width in radian
 const   stim_width_deg = stim_width_rad * 180 / Math.PI; // stimulus width in degrees
-const   stim_width_px = stim_width_deg * pxperdeg; // stim width in px from real monitor size in cm
-const   stim_diag_px = stim_width_px * Math.sqrt(2); // stim diagonal in px
+const   stim_width_px = stim_width_deg * pxperdeg; // stim width in px from real monitor size in cm. Note : your screen pixel is not the same PHYSICAL size than your neighbour's pixel.
+const   stim_diag_px = stim_width_px * Math.sqrt(2); // stimulus diagonal in px calculated for the participant's screen.
 
 // ############################
 // ### experiment variables ###
@@ -33,10 +41,10 @@ const   stim_diag_px = stim_width_px * Math.sqrt(2); // stim diagonal in px
 // based on Denkinger Sylvie's 'TOVA_parameters_2023' excel sheet 
 
 const   pres_time = 250; // stimulus presentation time in ms
-const   soa = 1000; // 4100ms duration in ms between the onset of two consecutive stimuli. In the original ACE-X TOVA, they have a 2000ms response-window. To be alligned with them, when analysing data, be sure that responses after 2000ms are not counted and treated as anticipatory responses.
+const   soa = 4100; // duration in ms between the onset of two consecutive stimuli. Note : In the original ACE-X TOVA, they have a 2000ms response-window. To be alligned with them, when analysing data, be sure that responses after 2000ms are not counted and treated as anticipatory responses.
 // const isi = soa - pres_time; // inter stimulus interval, NOT USE IN THE CODE
-const   root_path = './';
-// const root_path = 'https://s3.amazonaws.com/BavLab/TOVA/'; // BACKEND TO CHOOSE
+// const   root_path = './';
+const   root_path = 'https://s3.amazonaws.com/BavLab/TOVA/'; // BACKEND TO MODIFY IF NEEDED
 const   tova_up = `
                     <div class='up' id='shape'><img src='${root_path}assets/img/shape.png' style='width:${stim_width_px}px'></img></div>
                     `; // id='shape' is mandatory, without it it won't work, see plugin-html-keyboard-response.js
@@ -47,19 +55,24 @@ const   fixation_cross = `
                             <div class='fixcross' id='cross'>+</div>
                             `; // to change its size, see 'assets/css/style.css'
 const   practice_array = [0,1,1,0,1]; // 1 for go, 0 for no go
-const   block_type = ['SA', 'IC']; // fixed order, sustained attention then inhibitory control. Note : those are the names under the column 'block', they are not used for functional code - esthetic only
-const   fixed_80_block_01_sa = [0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,1,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0]; // fixed 80 SA (20% go / 80% nogo) block was computed through this function : lines 145-174 from https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js.
-const   fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,1,1,1,1,1]; // fixed 40 IC (80% go / 20% nogo) block was computed through this : lines 145-174 https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js
+const   block_type = ['SA', 'IC']; // fixed order, sustained attention then inhibitory control. Note : those are the names under the column 'block', they are not used for functional code - only aesthetical
+const   fixed_80_block_01_sa = [0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,1,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0]; // fixed 80 SA (20% go / 80% nogo) block was computed through this function : lines 510-550 from https://github.com/kennethrioja/bl_tova/commit/64cf61b942450fd5e397914d371c191e109310e6 - it can create infinite loops, my bad
+const   fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,1,1,1,1,1]; // fixed 40 IC (80% go / 20% nogo) block was computed through this : lines 510-550 from https://github.com/kennethrioja/bl_tova/commit/2508d50e70703f6e706a744ed47b424fac08ff6e - it can create infinite loops, my bad
 const   fixed_blocks_array = [fixed_80_block_01_sa, fixed_40_block_02_ic] // this is the  array on which the code is based
 const   post_instructions_time = 2000; // time to wait after instruction to begin the trials
-const   show_fixcross_array = [true, false]; // true = show fixation cross. First one is for practice, second is for main task
-const   feedback_color_array = [true, false]; // set for each block, if you want a colored feedback on your fixation cross. First one is for practice, second is for main task
-var     feedback_color = false; // this global variable will be updated depending on feedback_color_array. True = changes fixation cross to green/red depending of correct/incorrect response at the end of each trial, see plugin-html-keyboard-response.js
-const   ask_for_id = true; // true = displays a form asking for subject id, study id and session id. BACKEND : if false the URL MUST CONTAIN '?PROLIFIC_PID=*&STUDY_ID=*&SESSION_ID=*' with '*' being the corresponding values to variables.
-var     do_practice = true; // true = do practice, false = don't. BACKEND : can be a way to skip practice if problem during task.
-var     repeat_practice = []; // Array containing either 1 = practice must be repeated, or 0 = practice is not repeated. Rule : if 3 correct pass, otherwise repeat and allow 2 repetitions then pass. See repeat_prac_conditional to see ending loop.
 
-// strings
+// #######################
+// ### task monitoring ###
+// #######################
+
+const   show_fixcross_array = [true, false]; // true = show fixation cross. First one is for practice, second is for main task
+const   feedback_color_array = [true, false]; // true = your fixation cross become green for correct answers or red for incorrect, for no-go trials the fixation cross becomes green 250ms before the end of the trial. First one is for practice, second is for main task
+var     feedback_color = false; // true = changes fixation cross to green/red depending of correct/incorrect response at the end of each trial, see plugin-html-keyboard-response.js. This global variable will be updated (var not const) depending on feedback_color_array and is needed to communicate with plugin-html-keyboard-response.js.
+const   ask_for_id = false; // true = displays a form asking for subject id, study id and session id. BACKEND : set to false when you can retreive the following variables, for example though the URL. The latter MUST CONTAIN '?PROLIFIC_PID=*&STUDY_ID=*&SESSION_ID=*' with '*' being the corresponding values to variables.
+var     do_practice = true; // true = do practice, false = don't. BACKEND : can be a way to skip practice if problem during task, that's why it is 'var' and not 'const'.
+var     repeat_practice = []; // array containing either 1 (= practice must be repeated), or 0 (= practice is not repeated). Relevent when do_practice = true, it stores whether the participant needs to repeat the practice or not. Rule : if 3 correct responses over 5 then pass, otherwise repeat and allow 2 repetitions then pass anyway. See repeat_prac_conditional to see ending loop.
+
+// strings templates
 function showHideDiv(hide, show) { // see review_str
     const srcShow = document.getElementById(show);
     const srcHide = document.getElementById(hide);
@@ -149,7 +162,7 @@ const   classic_end_str =`
 // #####################################
 // ### modifications in plugin files ###
 // #####################################
-// see marks '*MODIFIED*'
+// see comments '*MODIFIED*' in the plugin files
 
 // 1) allow the recording of multiple responses during one trial
 // https://github.com/jspsych/jsPsych/discussions/1302
@@ -168,7 +181,7 @@ const   classic_end_str =`
 // file : plugin-instructions.js
 
 // ###################
-// ### Precautions ###
+// ### precautions ###
 // ###################
 
 // prevent ctrl+r or cmd+r : https://stackoverflow.com/questions/46882116/javascript-prevent-page-refresh-via-ctrl-and-r, https://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
@@ -307,8 +320,9 @@ var instructions = {
         Click the button "Next" to start the parctice.`
     ],
     show_clickable_nav: true,
-    on_finish: function (data) { // change color to black and wait post_instructions_time ms before getting to the first block
+    on_finish: function (data) { // change color to black, hides cursor and wait post_instructions_time ms before getting to the first block
         document.body.style.backgroundColor = '#000000';
+        document.body.style.cursor = 'none'; // hides cursor during task
         jsPsych.pauseExperiment();
         setTimeout(jsPsych.resumeExperiment, post_instructions_time);
     }
@@ -316,20 +330,20 @@ var instructions = {
 do_practice ? timeline.push(instructions) : null;  // ternary to say to do push this in the timeline if we want to go through the practice
 
 // ##################################################################################
-// ### Practice : define stimuli + their inner variables and trial + its timeline ###
+// ### practice : define stimuli + their inner variables and trial + its timeline ###
 // ##################################################################################
 
 var stimuli_practice = [
     { // represents 0 in practice_array
         stimulus: tova_down,
-        stim_img: 'shapedown',
-        expected_response: '0',
+        stimulus_label: 'shapedown',
+        position_is_top: 0,
         condition: 'NoGo'
     },
     { // represents 1 in practice_array
         stimulus: tova_up,
-        stim_img: 'shapeup',
-        expected_response: '1',
+        stimulus_label: 'shapeup',
+        position_is_top: 1,
         condition: 'Go'
     }
 ];
@@ -348,12 +362,12 @@ var trial_practice = {
     data: {
         block: '', // will be modified at the begining of the block/timeline, see on_timeline_start
         condition: jsPsych.timelineVariable('condition'),
-        expected_response: jsPsych.timelineVariable('expected_response'),
+        position_is_top: jsPsych.timelineVariable('position_is_top'),
         effective_response: '', // will be modified at the end of each trial, see 'on_finish' below
     },
     on_finish: function (data) {
         // give to data.stimulus the right label
-        data.stimulus = jsPsych.timelineVariable('stim_img');
+        data.stimulus = jsPsych.timelineVariable('stimulus_label');
         // read data.response (= array of key) to give the right number to effective_response
         if (data.response.length >= 2) {
             data.effective_response = 2; // 2 = multiple responses
@@ -364,8 +378,12 @@ var trial_practice = {
                 data.effective_response = 0; // 0 = refrained
             }
         }
-        // compute data.correct
-        data.correct = (data.expected_response == data.effective_response);
+        // compute correct, hit, fa, cr, miss
+        data.correct = +(data.position_is_top == data.effective_response);
+        data.hit = +(data.position_is_top && data.effective_response == 1); // hit : stimulus on top & press space bar
+        data.fa = +(!data.position_is_top && data.effective_response == 1); // false alarm : stimulus not on top & press space bar
+        data.cr = +(!data.position_is_top && !data.effective_response); // correct rejection : stimulus not on top & did not press space bar
+        data.miss = +(data.position_is_top && !data.effective_response); // miss : stimulus on top & did not press space bar
     }
 };
 
@@ -375,7 +393,7 @@ var block_practice = {
     on_timeline_start: function () {
         console.log("begins");
         trial_practice.data.block = 'practice';
-        feedback_color_array[0] ? feedback_color = true : feedback_color = false; // global variable that will be set at each block. True = colored fixation cross depending on correct/incorrect at the end of each trial, see plugin-html-keyboard-response.js. 
+        feedback_color_array[0] ? feedback_color = true : feedback_color = false; // global variable that will be set for each block. True = colored fixation cross depending on correct/incorrect at the end of each trial, see plugin-html-keyboard-response.js. 
     },
     sample: {
         type: 'custom',
@@ -386,7 +404,7 @@ var block_practice = {
 }
 
 // #####################
-// ### Practice loop ###
+// ### practice loop ###
 // #####################
 
 var repeat_prac_message = { // https://www.youtube.com/watch?v=LP7o0iAALik
@@ -395,9 +413,11 @@ var repeat_prac_message = { // https://www.youtube.com/watch?v=LP7o0iAALik
     stimulus: endblock_practice_str4,
     on_start: function () {
         document.body.style.backgroundColor = '#202020'; // back to grey
+        document.body.style.cursor = 'block'; // display cursor during instructions
     },
     on_finish: function () {
-        document.body.style.backgroundColor = '#000000';
+        document.body.style.backgroundColor = '#000000'; // back to black
+        document.body.style.cursor = 'none'; // hide cursor during task
         jsPsych.pauseExperiment();
         setTimeout(jsPsych.resumeExperiment, post_instructions_time);
     }
@@ -406,7 +426,7 @@ var repeat_prac_conditional = {
     timeline: [repeat_prac_message],
     conditional_function: function() {
         const trials_practice = jsPsych.data.get().filter({ block: 'practice' }).last(5); // get last 5 practice trials
-        const n_correct_trials_practice = trials_practice.filter({ correct: true }).count(); // count only the true last 5 practice trials
+        const n_correct_trials_practice = trials_practice.filter({ correct: 1 }).count(); // count only the true last 5 practice trials
         console.log(n_correct_trials_practice);
         if (n_correct_trials_practice < 3 && repeat_practice.length < 2) {// if not more than 3 correct trials and we allow 2 repetitions , repeat_prac_conditional = true, meaning practice is repeated.
             repeat_practice.push(true);
@@ -426,15 +446,14 @@ var prac_loop = {
             return true;
         } else {
             document.body.style.backgroundColor = '#202020'; // back to grey
-    
+            document.body.style.cursor = 'block'; // display cursor during instructions
+        
             const date = new Date();
             const month = date.getMonth() + 1 < 10 ? ('0' + (date.getMonth() + 1)) : (date.getMonth() + 1).toString();
             const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate().toString();
             const final = jsPsych.data.get();
-            console.log(final.csv()); // can be removed
-            console.log(final); // can be removed
-            final.localSave('csv', final.trials[0].subject_id + '_blTova_practice_' + date.getFullYear() + month + day + '.csv'); // BACKEND : need to save this csv
-            // window.location.replace('../../bl_tova/index.html?PROLIFIC_PID=' + data.subject_id + '&STUDY_ID=' + data.study_id + '&SESSION_ID=' + data.session_id); // autoredirects to task, whenever the folder of the practice is at the same level than the folder of the task, no need to now    
+            // console.log(final.csv()); // can be removed
+            // final.localSave('csv', final.trials[0].subject_id + '_blTova_practice_' + date.getFullYear() + month + day + '.csv'); // BACKEND : need to save this csv 
 
             jsPsych.pauseExperiment();
             setTimeout(jsPsych.resumeExperiment, post_instructions_time);
@@ -445,48 +464,6 @@ var prac_loop = {
 }
 do_practice ? timeline.push(prac_loop) : null;
 
-////////////////////
-
-var debrief_block_practice = {
-    type: jsPsychHtmlKeyboardResponse,
-    choices: [' '],
-    prompt: function () {
-        const trials_practice = jsPsych.data.get().filter({ block: 'practice' }).last(5);
-        const go_trials_practice = trials_practice.filter({ condition: 'Go' });
-        const nogo_trials_practice = trials_practice.filter({ condition: 'NoGo' });
-        const correct_trials_practice = trials_practice.filter({ correct: true });
-        const correct_go_trials_practice = correct_trials_practice.filter({ condition: 'Go' });
-        const correct_nogo_trials_practice = correct_trials_practice.filter({ condition: 'NoGo' });
-        const go_accuracy_practice = Math.round(correct_go_trials_practice.count() / go_trials_practice.count() * 100);
-        const nogo_accuracy_practice = Math.round(correct_nogo_trials_practice.count() / nogo_trials_practice.count() * 100);
-        const correct_go_rt_practice = Math.round(correct_go_trials_practice.select('rt').mean());
-        // return `${endblock_practice_str1}${go_accuracy_practice}${endblock_practice_str2}${nogo_accuracy_practice}${endblock_practice_str3}`;
-    },
-    on_start: function () {
-        document.body.style.backgroundColor = '#202020'; // back to grey
-    },
-    on_finish: function (data) { // wait post_instructions_time ms before getting to the next block
-        jsPsych.pauseExperiment();
-        setTimeout(jsPsych.resumeExperiment, post_instructions_time);
-
-        const date = new Date();
-        const month = date.getMonth() + 1 < 10 ? ('0' + (date.getMonth() + 1)) : (date.getMonth() + 1).toString();
-        const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate().toString();
-        const final = jsPsych.data.get();
-        console.log(final.csv()); // can be removed
-        final.localSave('csv', data.subject_id + '_blTova_practice_' + date.getFullYear() + month + day + '.csv'); // BACKEND : need to save this csv
-        // window.location.replace('../../bl_tova/index.html?PROLIFIC_PID=' + data.subject_id + '&STUDY_ID=' + data.study_id + '&SESSION_ID=' + data.session_id); // autoredirects to task, whenever the folder of the practice is at the same level than the folder of the task, no need to now
-    }
-}
-
-// ###########################################
-// ### create practice blocks and feedback ###
-// ###########################################
-
-
-
-// do_practice ? timeline.push(debrief_block_practice) : null;
-
 // ###############################
 // ########## MAIN TASK ##########
 // ###############################
@@ -496,13 +473,12 @@ var review_fullscreenOn = { // fullscreen mode
     message: review_str,
     fullscreen_mode: true,
     button_label: 'Begin Task',
-    // on_timeline_start: {
-    //     setTimeout(jsPsych.resumeExperiment, post_instructions_time);
-    // },
-    on_finish: function(data){ // change color to black and wait post_instructions_time ms before getting to the first block
-        document.body.style.backgroundColor = '#000000';
+    on_finish: function(data){ // change color to black and cursor and wait post_instructions_time ms before getting to the first block
+        document.body.style.backgroundColor = '#000000'; // back to black
+        document.body.style.cursor = 'none'; // hide cursor during task
         jsPsych.pauseExperiment();
         setTimeout(jsPsych.resumeExperiment, post_instructions_time);
+        do_practice = false; // BACKEND should find a way to update 'do_practice' at this point, so that when a participant refreshes the window, he/she comes directly here – since the data is save before !
     }
 };
 timeline.push(review_fullscreenOn);
@@ -514,14 +490,14 @@ timeline.push(review_fullscreenOn);
 var stimuli = [
     { // represents 0 in practice_array
         stimulus: tova_down,
-        stim_img: 'shapedown',
-        expected_response: '0',
+        stimulus_label: 'shapedown',
+        position_is_top: 0,
         condition: 'NoGo'
     },
     { // represents 1 in practice_array
         stimulus: tova_up,
-        stim_img: 'shapeup',
-        expected_response: '1',
+        stimulus_label: 'shapeup',
+        position_is_top: 1,
         condition: 'Go'
     }
 ];
@@ -539,12 +515,12 @@ var trial = {
     data: {
         block: '', // is modified at the begining of the block/timeline, see block.on_timeline_start
         condition: jsPsych.timelineVariable('condition'),
-        expected_response: jsPsych.timelineVariable('expected_response'),
+        position_is_top: jsPsych.timelineVariable('position_is_top'),
         effective_response: '', // is modified at the end of each trial, see 'on_finish' below
     },
     on_finish: function (data) {
         // give to data.stimulus the right label
-        data.stimulus = jsPsych.timelineVariable('stim_img');
+        data.stimulus = jsPsych.timelineVariable('stimulus_label');
         // read data.response (= array of key) to give the right number to effective_response
         if (data.response.length >= 2) {
             data.effective_response = 2; // 2 = multiple responses
@@ -555,8 +531,12 @@ var trial = {
                 data.effective_response = 0; // 0 = refrained
             }
         }
-        // compute data.correct
-        data.correct = (data.expected_response == data.effective_response);
+        // compute correct, hit, fa, cr, miss
+        data.correct = +(data.position_is_top == data.effective_response);
+        data.hit = +(data.position_is_top && data.effective_response == 1); // hit : stimulus on top & press space bar one time
+        data.fa = +(!data.position_is_top && data.effective_response == 1); // false alarm : stimulus not on top & press space bar one time
+        data.cr = +(!data.position_is_top && !data.effective_response); // correct rejection : stimulus not on top & did not press space bar
+        data.miss = +(data.position_is_top && !data.effective_response); // miss : stimulus on top & did not press space bar
     }
 };
 
@@ -576,8 +556,8 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
         sample: {
             type: 'custom',
             fn: function () { 
-                // return fixed_blocks_array[i];
-                return [0,1,1,0]; // for debugging
+                return fixed_blocks_array[i];
+                // return [0,1,1,0]; // for debugging
             }
         },
     }
@@ -588,15 +568,15 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
         type: jsPsychHtmlKeyboardResponse,
         choices: [' '],
         prompt: function () {
-            let trials = jsPsych.data.get().filter({ block: block_type[i] });
-            let go_trials = trials.filter({ condition: 'Go' });
-            let nogo_trials = trials.filter({ condition: 'NoGo' });
-            let correct_trials = trials.filter({ correct: true });
-            let correct_go_trials = correct_trials.filter({ condition: 'Go' });
-            let correct_nogo_trials = correct_trials.filter({ condition: 'NoGo' });
-            let go_accuracy = Math.round(correct_go_trials.count() / go_trials.count() * 100);
-            let nogo_accuracy = Math.round(correct_nogo_trials.count() / nogo_trials.count() * 100);
-            let correct_go_rt = Math.round(correct_go_trials.select('rt').mean());
+            const trials = jsPsych.data.get().filter({ block: block_type[i] });
+            const go_trials = trials.filter({ condition: 'Go' });
+            const nogo_trials = trials.filter({ condition: 'NoGo' });
+            const correct_trials = trials.filter({ correct: true });
+            const correct_go_trials = correct_trials.filter({ condition: 'Go' });
+            const correct_nogo_trials = correct_trials.filter({ condition: 'NoGo' });
+            const go_accuracy = Math.round(correct_go_trials.count() / go_trials.count() * 100);
+            const nogo_accuracy = Math.round(correct_nogo_trials.count() / nogo_trials.count() * 100);
+            const correct_go_rt = Math.round(correct_go_trials.select('rt').mean());
             if (i === fixed_blocks_array.length - 1) {
                 return `${endblock_str1}${go_accuracy}${endblock_str2}${nogo_accuracy}${endblock_str4}`;
             }
@@ -604,6 +584,7 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
         },
         on_start: function() {
             document.body.style.backgroundColor = '#202020'; // back to grey
+            document.body.style.cursor = 'block'; // display cursor during instructions
         },
         on_finish: function(data){ // wait post_instructions_time ms before getting to the next block
             document.body.style.backgroundColor = '#000000'; // back to black
@@ -623,17 +604,17 @@ timeline.push({
     fullscreen_mode: false,
     on_finish: function (data) {
         // document.body.innerHTML = completion_code_str; // enable to show completion_code_str
-        // document.body.innerHTML = inlab_final_str; 
-        document.body.innerHTML = classic_end_str
+        // document.body.innerHTML = inlab_final_str;  // enable when doing this inlab
+        document.body.innerHTML = classic_end_str // enable when you just want to say thank you
         // BACKEND - WHAT DO YOU WANT TO BE DISPLAYED AT THE END OF THE TASK ?
 
         const date = new Date();
         const month = date.getMonth() + 1 < 10 ? ('0' + (date.getMonth() + 1)) : (date.getMonth() + 1).toString();
         const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate().toString();
         const final = jsPsych.data.get();
-
-        console.log(final.csv());
-        final.localSave('csv', data.subject_id + '_blTova_task_' + date.getFullYear() + month + day + '.csv'); // BACKEND MUST SAVE FINAL.CSV() AT THIS POINT
+        // console.log(final.csv());
+        // final.localSave('csv', data.subject_id + '_blTova_task_' + date.getFullYear() + month + day + '.csv'); // BACKEND MUST SAVE FINAL.CSV() AT THIS POINT
+        
         window.onbeforeunload = null; // disable the prevention
     }
 });

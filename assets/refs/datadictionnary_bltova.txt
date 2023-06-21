@@ -1,6 +1,6 @@
 author : Kenneth Rioja
 description : data dictionnary of variables from the bl_tova csv
-legend :
+
 variable_name
 	type
 	description
