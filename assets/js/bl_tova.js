@@ -20,8 +20,13 @@ const   distance_cm = 60; // eyes/screen distance in cm
 const   monitor_width_px = window.outerWidth; // monitor width in px
 const   monitor_height_px = window.outerHeight; // monitor height in px
 const   monitorsize_cm = monitorsize * 2.54 // inch to cm
+<<<<<<< HEAD
 const   stim_diag_cm = monitorsize_cm * 0.20 // stim diag in cm is 15% of monitorsize, 6.75cm
 const   stim_width_cm = stim_diag_cm / Math.sqrt(2); // stim width in cm (shape.png is a 500x500 square)
+=======
+const   stim_diag_cm = monitorsize_cm * 0.15 // stim diag in cm is 15% of monitorsize, 6.75cm
+const   stim_width_cm = stim_diag_cm * Math.sqrt(2); // stim width in cm (shape.png is a 500x500 square)
+>>>>>>> cd1ba3ea3019b1bf167c4110f6c2a585a9f15879
 const   stim_width_rad = 2 * Math.atan((stim_width_cm / 2) / distance_cm); // stimulus width in radian
 const   stim_width_deg = stim_width_rad * 180 / Math.PI; // stimulus width in degrees
 const   stim_width_px = stim_width_deg * pxperdeg; // stim width in px from real monitor size in cm
@@ -48,16 +53,27 @@ const   fixation_cross = `
                             `; // to change its size, see 'assets/css/style.css'
 const   practice_array = [0,1,1,0,1]; // 1 for go, 0 for no go
 const   block_type = ['SA', 'IC']; // fixed order, sustained attention then inhibitory control. Note : those are the names under the column 'block', they are not used for functional code - esthetic only
+<<<<<<< HEAD
 const   fixed_80_block_01_sa = [0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,1,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0]; // fixed 80 SA (20% go / 80% nogo) block was computed through this function : lines 145-174 from https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js.
 const   fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,1,1,1,1,1]; // fixed 40 IC (80% go / 20% nogo) block was computed through this : lines 145-174 https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js
+=======
+const   fixed_80_block_01_sa = [0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,1,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0]; // fixed 80 SA (20% go / 80% nogo) block was computed through this function : lines 145-174 from https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js. 1) Multiple sequences were computed, 2) 3 were selected by hand while having in mind to keep a distributed distribution of 1 across the entire block, 3) the selection of the chosen block was done with SD and DB
+const   fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,1,1,1,1,1]; // fixed 40 IC (80% go / 20% nogo) block was computed through this : lines 145-174 https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js, selection was made the same than for SA.
+// 1,0,1,1,1,1,1,1,0,1,0,1,0,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1
+// 1,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,0,1
+>>>>>>> cd1ba3ea3019b1bf167c4110f6c2a585a9f15879
 const   fixed_blocks_array = [fixed_80_block_01_sa, fixed_40_block_02_ic] // this is the  array on which the code is based
 const   post_instructions_time = 2000; // time to wait after instruction to begin the trials
 const   show_fixcross_array = [true, false]; // true = show fixation cross. First one is for practice, second is for main task
 const   feedback_color_array = [true, false]; // set for each block, if you want a colored feedback on your fixation cross. First one is for practice, second is for main task
 var     feedback_color = false; // this global variable will be updated depending on feedback_color_array. True = changes fixation cross to green/red depending of correct/incorrect response at the end of each trial, see plugin-html-keyboard-response.js
 const   ask_for_id = true; // true = displays a form asking for subject id, study id and session id. BACKEND : if false the URL MUST CONTAIN '?PROLIFIC_PID=*&STUDY_ID=*&SESSION_ID=*' with '*' being the corresponding values to variables.
+<<<<<<< HEAD
 var     do_practice = true; // true = do practice, false = don't. BACKEND : can be a way to skip practice if problem during task.
 var     redo_practice = true; // MUST BE TRUE BY DEFAULT, it is updated when finish practice trial to false if ok. if strictly less than 3 correct trials then true = redo practice, false = don't. 
+=======
+var     do_practice = false; // true = do practice, false = don't. BACKEND : can be a way to skip practice if problem during task.
+>>>>>>> cd1ba3ea3019b1bf167c4110f6c2a585a9f15879
 
 // strings
 function showHideDiv(hide, show) { // see review_str
@@ -421,6 +437,7 @@ for (let i = 0; (i < 3 && redo_practice); i++) {
             jsPsych.pauseExperiment();
             setTimeout(jsPsych.resumeExperiment, post_instructions_time);
 
+<<<<<<< HEAD
             if (redo_practice) { return ; } // if needs to redo practice, then go for next practice trial
 
             const date = new Date();
@@ -431,10 +448,27 @@ for (let i = 0; (i < 3 && redo_practice); i++) {
             final.localSave('csv', data.subject_id + '_blTova_practice_' + date.getFullYear() + month + day + '.csv'); // BACKEND : need to save this csv
             // window.location.replace('../../bl_tova/index.html?PROLIFIC_PID=' + data.subject_id + '&STUDY_ID=' + data.study_id + '&SESSION_ID=' + data.session_id); // autoredirects to task, whenever the folder of the practice is at the same level than the folder of the task, no need to now
         }
+=======
+        const date = new Date();
+        const month = date.getMonth() + 1 < 10 ? ('0' + (date.getMonth() + 1)) : (date.getMonth() + 1).toString();
+        const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate().toString();
+        const final = jsPsych.data.get();
+        console.log(final.csv()); // can be removed
+        final.localSave('csv', data.subject_id + '_blTova_practice_' + date.getFullYear() + month + day + '.csv'); // BACKEND : need to save this csv
+        // window.location.replace('../../bl_tova/index.html?PROLIFIC_PID=' + data.subject_id + '&STUDY_ID=' + data.study_id + '&SESSION_ID=' + data.session_id); // autoredirects to task, whenever the folder of the practice is at the same level than the folder of the task, no need to now
+>>>>>>> cd1ba3ea3019b1bf167c4110f6c2a585a9f15879
     }
     do_practice ? timeline.push(debrief_block_practice) : null;
 }
 
+<<<<<<< HEAD
+=======
+do_practice ? timeline.push(debrief_block_practice) : null;
+
+jsPsych.run(timeline);
+
+
+>>>>>>> cd1ba3ea3019b1bf167c4110f6c2a585a9f15879
 // ###############################
 // ########## MAIN TASK ##########
 // ###############################
@@ -520,7 +554,52 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
         },
         sample: {
             type: 'custom',
+<<<<<<< HEAD
             fn: function () { 
+=======
+            fn: function () { // SA (20/80, 50% of targets in first half then 50% on second half, with no more than 2 consecutive targets)
+                var n_tot = 80;
+                var n_gotrials = n_tot * 0.2; // 1
+                var n_nogotrials = n_tot * 0.8; // 0
+                
+                var arr = [];
+                function rand50() {
+                    return Math.floor(Math.random() * 10) & 1;
+                }
+                function rand75() { // https://www.geeksforgeeks.org/generate-0-1-25-75-probability/
+                    return +!(!rand50() | !rand50());
+                }
+                while (arr.length < n_tot) {
+                    var rdm = rand75();
+                    if (arr.length == 0) { // first trial is nogo for SA
+                        arr.push(0);
+                        n_nogotrials--;
+                    } else if (arr[arr.length - 2] == 1 
+                                && arr[arr.length - 1] == 1 
+                                && n_nogotrials > 0) { // if two previous trials where go, push a no-go = not more than 2 go in a row
+                        arr.push(0);
+                        n_nogotrials--;
+                    } else if (rdm == 1 && n_gotrials > 0
+                                && ((n_gotrials >= 8 && arr.length < 40)
+                                || (n_gotrials < 8 && arr.length > 40))
+                                ) { // 50% of target in first half and the remaining in the second half
+                        arr.push(rdm);
+                        n_gotrials--;
+                    } else if (rdm == 0 && n_nogotrials > 0
+                                && ((n_nogotrials >= 32 && arr.length <= 40)
+                                || (n_nogotrials < 32 && arr.length >= 40))
+                                ) { // 50% of non-target in first half and the remaining in the second half
+                        arr.push(rdm);
+                        n_nogotrials--;
+                    }
+                }
+                console.log(arr.length);
+                console.log(arr.reduce((accumulator, currentValue) => {
+                    return accumulator + currentValue
+                }, 0)); //https://www.freecodecamp.org/news/how-to-add-numbers-in-javascript-arrays/
+                console.log(arr.toString());
+
+>>>>>>> cd1ba3ea3019b1bf167c4110f6c2a585a9f15879
                 // return fixed_blocks_array[i];
                 return [0,1,1,0]; // for debugging
             }
