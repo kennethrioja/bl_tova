@@ -20,8 +20,8 @@ const   distance_cm = 60; // eyes/screen distance in cm
 const   monitor_width_px = window.outerWidth; // monitor width in px
 const   monitor_height_px = window.outerHeight; // monitor height in px
 const   monitorsize_cm = monitorsize * 2.54 // inch to cm
-const   stim_diag_cm = monitorsize_cm * 0.15 // stim diag in cm is 15% of monitorsize, 6.75cm
-const   stim_width_cm = stim_diag_cm * Math.sqrt(2); // stim width in cm (shape.png is a 500x500 square)
+const   stim_diag_cm = monitorsize_cm * 0.20 // stim diag in cm is 15% of monitorsize, 6.75cm
+const   stim_width_cm = stim_diag_cm / Math.sqrt(2); // stim width in cm (shape.png is a 500x500 square)
 const   stim_width_rad = 2 * Math.atan((stim_width_cm / 2) / distance_cm); // stimulus width in radian
 const   stim_width_deg = stim_width_rad * 180 / Math.PI; // stimulus width in degrees
 const   stim_width_px = stim_width_deg * pxperdeg; // stim width in px from real monitor size in cm
@@ -48,10 +48,8 @@ const   fixation_cross = `
                             `; // to change its size, see 'assets/css/style.css'
 const   practice_array = [1, 1, 0, 1, 0]; // 1 for go, 0 for no go – modify this array to suit your needs
 const   block_type = ['SA', 'IC']; // fixed order, sustained attention then inhibitory control. Note : those are the names under the column 'block', they are not used for functional code - esthetic only
-const   fixed_80_block_01_sa = [0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,1,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0]; // fixed 80 SA (20% go / 80% nogo) block was computed through this function : lines 145-174 from https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js. 1) Multiple sequences were computed, 2) 3 were selected by hand while having in mind to keep a distributed distribution of 1 across the entire block, 3) the selection of the chosen block was done with SD and DB
-const   fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,1,1,1,1,1]; // fixed 40 IC (80% go / 20% nogo) block was computed through this : lines 145-174 https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js, selection was made the same than for SA.
-// 1,0,1,1,1,1,1,1,0,1,0,1,0,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1
-// 1,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,0,1
+const   fixed_80_block_01_sa = [0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,1,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0]; // fixed 80 SA (20% go / 80% nogo) block was computed through this function : lines 145-174 from https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js.
+const   fixed_40_block_02_ic = [1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,1,1,1,1,1]; // fixed 40 IC (80% go / 20% nogo) block was computed through this : lines 145-174 https://github.com/kennethrioja/bl_tova/blob/46aa36a51c6cf42021ec62204e2b4b18bc6be4c5/assets/js/bl_tova.js
 const   fixed_blocks_array = [fixed_80_block_01_sa, fixed_40_block_02_ic] // this is the  array on which the code is based
 const   post_instructions_time = 2000; // time to wait after instruction to begin the trials
 const   show_fixcross_array = [true, false]; // true = show fixation cross. First one is for practice, second is for main task
@@ -507,48 +505,7 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
         },
         sample: {
             type: 'custom',
-            fn: function () { // IC (20/80, 50% of targets in first half then 50% on second half, with no more than 2 consecutive targets)
-                var n_tot = 40;
-                var n_gotrials = n_tot * 0.8; // 1
-                var n_nogotrials = n_tot * 0.2; // 0
-                
-                var arr = [];
-                function rand50() {
-                    return Math.floor(Math.random() * 10) & 1;
-                }
-                function rand75() { // https://www.geeksforgeeks.org/generate-0-1-25-75-probability/
-                    return rand50() | rand50();
-                }
-                while (arr.length < n_tot) {
-                    var rdm = rand75();
-                    if (arr.length == 0) { // first trial is go for IC
-                        arr.push(1);
-                        n_gotrials--;
-                    } else if (arr[arr.length - 2] == 0 
-                                && arr[arr.length - 1] == 0 
-                                && n_gotrials > 0) { // if two previous trials where nogo, push a go = not more than 2 no-go in a row
-                        arr.push(1);
-                        n_gotrials--;
-                    } else if (rdm == 0 && n_nogotrials > 0
-                                && ((n_nogotrials >= 4 && arr.length < 20)
-                                || (n_nogotrials < 4 && arr.length > 20))
-                                ) { // 50% of non-target in first half and the remaining in the second half
-                        arr.push(rdm);
-                        n_nogotrials--;
-                    } else if (rdm == 1 && n_gotrials > 0
-                        && ((n_gotrials > 16 && arr.length <= 20)
-                        || (n_gotrials <= 16 && arr.length >= 20))
-                        ) { // 50% of target in first half and the remaining in the second half
-                        arr.push(rdm);
-                        n_gotrials--;
-                    } 
-                }
-                console.log(arr.length);
-                console.log(arr.reduce((accumulator, currentValue) => {
-                    return accumulator + currentValue
-                }, 0)); //https://www.freecodecamp.org/news/how-to-add-numbers-in-javascript-arrays/
-                console.log(arr.toString());
-
+            fn: function () { 
                 // return fixed_blocks_array[i];
                 return [0,1,1,0]; // for debugging
             }
