@@ -136,6 +136,10 @@ var jsPsychHtmlKeyboardResponse = (function (jspsych) {
                         clearTimeout(corr_nogo); // incorrect nogo trial : cancel the 'setTimeout' (see "handle non responses") = cross does not turn green after response on nogo trial
                     }
                 }
+                // when a response (correct or incorrect) is given strictly before 2000ms, the trial ends 2100ms after reponse. SOA becomes : RT + 2100ms *MODIFIED*
+                if (info.rt < 2000) {
+                    this.jsPsych.pluginAPI.setTimeout(end_trial, 2100);
+                }
             };
             // start the response listener
             if (trial.choices != "NO_KEYS") {

@@ -181,6 +181,9 @@ const   classic_end_str =`
 // 5) grey previous buttons in instructions
 // file : plugin-instructions.js
 
+// 6) when a response is given, the trial ends 2100ms after reponse. SOA(RT<2000ms) = RT + 2100ms, data.soa is changed in this file, see 'data.soa'
+// file : plugin-html-keyboard-response.js
+
 // ###################
 // ### precautions ###
 // ###################
@@ -377,12 +380,18 @@ var trial_practice = {
                 data.effective_response = 0; // 0 = refrained
             }
         }
-        // compute correct, hit, fa, cr, miss
+        // compute correct
         data.correct = +(data.position_is_top == data.effective_response);
-        data.hit = +(data.position_is_top && data.effective_response == 1); // hit : stimulus on top & press space bar
-        data.fa = +(!data.position_is_top && data.effective_response == 1); // false alarm : stimulus not on top & press space bar
-        data.cr = +(!data.position_is_top && !data.effective_response); // correct rejection : stimulus not on top & did not press space bar
-        data.miss = +(data.position_is_top && !data.effective_response); // miss : stimulus on top & did not press space bar
+        // compute trial_accuracy (whether hit, fa, cr, miss)
+        data.trial_accuracy = 
+                                +(data.position_is_top && data.effective_response) == 1 ? "Hit" : // is hit ? true = "Hit" otherwise
+                                +(!data.position_is_top && data.effective_response) == 1 ? "False Alarm" : // is fa ? true = "False Alarm" otherwise
+                                +(!data.position_is_top && !data.effective_response) == 1 ? "Correct Rejection" : // is cr ? true = "False Alarm" otherwise
+                                +(data.position_is_top && !data.effective_response) == 1 ? "Miss" : null; // is miss ? true = "Miss" otherwise null
+        // modify soa value in data to RT + 2100ms. Note that this is only the value in your data, not what the code behind is currently doing, see plugin-html-keyboard-reponse.js for implementation
+        if (jsPsych.data.get().last(1).values()[0].rt) {
+            data.soa = +(jsPsych.data.get().last(1).values()[0].rt.split(',')[0]) + 2100;
+        }
     }
 };
 
@@ -449,7 +458,7 @@ var prac_loop = {
             const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate().toString();
             const final = jsPsych.data.get();
             // console.log(final.csv()); // can be removed
-            final.localSave('csv', final.trials[0].subject_id + '_blTova_practice_' + date.getFullYear() + month + day + '.csv'); // BACKEND : need to save this csv 
+            final.localSave('csv', final.trials[0].subject_id + '_blTova_practice_' + date.getFullYear() + month + day + '.csv'); // BACKEND : need to save this csv , otherwise uncomment for debugging
 
             jsPsych.pauseExperiment();
             setTimeout(jsPsych.resumeExperiment, post_instructions_time);
@@ -527,12 +536,18 @@ var trial = {
                 data.effective_response = 0; // 0 = refrained
             }
         }
-        // compute correct, hit, fa, cr, miss
+        // compute correct
         data.correct = +(data.position_is_top == data.effective_response);
-        data.hit = +(data.position_is_top && data.effective_response == 1); // hit : stimulus on top & press space bar one time
-        data.fa = +(!data.position_is_top && data.effective_response == 1); // false alarm : stimulus not on top & press space bar one time
-        data.cr = +(!data.position_is_top && !data.effective_response); // correct rejection : stimulus not on top & did not press space bar
-        data.miss = +(data.position_is_top && !data.effective_response); // miss : stimulus on top & did not press space bar
+        // compute trial_accuracy (whether hit, fa, cr, miss)
+        data.trial_accuracy = 
+                                +(data.position_is_top && data.effective_response) == 1 ? "Hit" : // is hit ? true = "Hit" otherwise
+                                +(!data.position_is_top && data.effective_response) == 1 ? "False Alarm" : // is fa ? true = "False Alarm" otherwise
+                                +(!data.position_is_top && !data.effective_response) == 1 ? "Correct Rejection" : // is cr ? true = "False Alarm" otherwise
+                                +(data.position_is_top && !data.effective_response) == 1 ? "Miss" : null; // is miss ? true = "Miss" otherwise null
+        // modify soa value in data to RT + 2100ms. Note that this is only the value in your data, not what the code behind is currently doing, see plugin-html-keyboard-reponse.js for implementation
+        if (jsPsych.data.get().last(1).values()[0].rt) {
+            data.soa = +(jsPsych.data.get().last(1).values()[0].rt.split(',')[0]) + 2100;
+        }
     }
 };
 
@@ -552,8 +567,8 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
         sample: {
             type: 'custom',
             fn: function () { 
-                return fixed_blocks_array[i];
-                // return [0,1,1,0]; // for debugging
+                // return fixed_blocks_array[i];
+                return [0,1,1,0]; // for debugging
             }
         },
     }
