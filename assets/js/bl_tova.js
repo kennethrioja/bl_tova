@@ -458,7 +458,7 @@ var prac_loop = {
             const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate().toString();
             const final = jsPsych.data.get();
             // console.log(final.csv()); // can be removed
-            final.localSave('csv', final.trials[0].subject_id + '_blTova_practice_' + date.getFullYear() + month + day + '.csv'); // BACKEND : need to save this csv , otherwise uncomment for debugging
+            // final.localSave('csv', final.trials[0].subject_id + '_blTova_practice_' + date.getFullYear() + month + day + '.csv'); // BACKEND : need to save this csv , otherwise uncomment for debugging
 
             jsPsych.pauseExperiment();
             setTimeout(jsPsych.resumeExperiment, post_instructions_time);
@@ -567,8 +567,8 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
         sample: {
             type: 'custom',
             fn: function () { 
-                // return fixed_blocks_array[i];
-                return [0,1,1,0]; // for debugging
+                return fixed_blocks_array[i];
+                // return [0,1,1,0]; // for debugging
             }
         },
     }
