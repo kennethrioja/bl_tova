@@ -24,17 +24,16 @@
 // ### compute stim width in px ###
 // ################################
 
-// const   distance_cm = 60; // screen/eyes distance in cm
+const   distance_cm = 60; // screen/eyes distance in cm
 const   monitor_width_px = window.outerWidth; // monitor width in px
-// const   monitor_height_px = window.outerHeight; // monitor height in px
-// const   monitorsize_cm = monitorsize * 2.54 // monitorsize inch to cm
-// const   stim_diag_cm = monitorsize_cm * 0.20 // stimulus diagonal in cm is 20% of monitorsize. 1. check that the stimulus is a square, otherwise change formulas below, 2. source said stimulus diagonal is between 15 to 30% of screen diagonal
-// const   stim_width_cm = stim_diag_cm / Math.sqrt(2); // stimulus width in cm
-// const   stim_width_rad = 2 * Math.atan((stim_width_cm / 2) / distance_cm); // stimulus width in radian
-// const   stim_width_deg = stim_width_rad * 180 / Math.PI; // stimulus width in degrees
-// const   stim_width_px = stim_width_deg * pxperdeg; // stim width in px from real monitor size in cm. Note : your screen pixel is not the same PHYSICAL size than your neighbour's pixel.
-const   stim_width_px = monitor_width_px * 0.2;
-// const   stim_diag_px = stim_width_px * Math.sqrt(2); // stimulus diagonal in px calculated for the participant's screen.
+const   monitor_height_px = window.outerHeight; // monitor height in px
+const   monitorsize_cm = monitorsize * 2.54 // monitorsize inch to cm
+const   stim_diag_cm = monitorsize_cm * 0.20 // stimulus diagonal in cm is 20% of monitorsize. 1. check that the stimulus is a square, otherwise change formulas below, 2. source said stimulus diagonal is between 15 to 30% of screen diagonal
+const   stim_width_cm = stim_diag_cm / Math.sqrt(2); // stimulus width in cm
+const   stim_width_rad = 2 * Math.atan((stim_width_cm / 2) / distance_cm); // stimulus width in radian
+const   stim_width_deg = stim_width_rad * 180 / Math.PI; // stimulus width in degrees
+const   stim_width_px = stim_width_deg * pxperdeg; // stim width in px from real monitor size in cm. Note : your screen pixel is not the same PHYSICAL size than your neighbour's pixel.
+const   stim_diag_px = stim_width_px * Math.sqrt(2); // stimulus diagonal in px calculated for the participant's screen.
 
 // ############################
 // ### experiment variables ###
@@ -44,8 +43,7 @@ const   stim_width_px = monitor_width_px * 0.2;
 const   pres_time = 250; // stimulus presentation time in ms
 const   soa = 4100; // duration in ms between the onset of two consecutive stimuli. Note : In the original ACE-X TOVA, they have a 2000ms response-window. To be alligned with them, when analysing data, be sure that responses after 2000ms are not counted and treated as anticipatory responses.
 // const isi = soa - pres_time; // inter stimulus interval, NOT USE IN THE CODE
-const   root_path = './';
-// const   root_path = 'https://s3.amazonaws.com/BavLab/TOVA/'; // BACKEND TO MODIFY IF NEEDED
+const   root_path = 'https://s3.amazonaws.com/BavLab/TOVA/'; // BACKEND TO MODIFY IF NEEDED
 const   tova_up = `
                     <div class='up' id='shape'><img src='${root_path}assets/img/shape.png' style='width:${stim_width_px}px'></img></div>
                     `; // id='shape' is mandatory, without it it won't work, see plugin-html-keyboard-response.js
@@ -258,10 +256,10 @@ if (!ask_for_id) {
             jsPsych.data.addProperties({
                 presentation_time: pres_time,
                 soa: soa,
-                // monitorsize_inch: monitorsize,
-                // pxperdeg: pxperdeg,
-                // stimulus_diagonal_px: stim_diag_px,
-                // stimulus_diagonal_cm: stim_diag_cm
+                monitorsize_inch: monitorsize,
+                pxperdeg: pxperdeg,
+                stimulus_diagonal_px: stim_diag_px,
+                stimulus_diagonal_cm: stim_diag_cm
             });
         }
     };
@@ -458,7 +456,7 @@ var prac_loop = {
             const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate().toString();
             const final = jsPsych.data.get();
             // console.log(final.csv()); // can be removed
-            final.localSave('csv', final.trials[0].subject_id + '_blTova_practice_' + date.getFullYear() + month + day + '.csv'); // BACKEND : need to save this csv , otherwise uncomment for debugging
+            // final.localSave('csv', final.trials[0].subject_id + '_blTova_practice_' + date.getFullYear() + month + day + '.csv'); // BACKEND : need to save this csv , otherwise uncomment for debugging
 
             jsPsych.pauseExperiment();
             setTimeout(jsPsych.resumeExperiment, post_instructions_time);
@@ -567,8 +565,8 @@ for (let i = 0; i < fixed_blocks_array.length; i++){
         sample: {
             type: 'custom',
             fn: function () { 
-                // return fixed_blocks_array[i];
-                return [0,1,1,0]; // for debugging
+                return fixed_blocks_array[i];
+                // return [0,1,1,0]; // for debugging
             }
         },
     }
@@ -624,7 +622,7 @@ timeline.push({
         const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate().toString();
         const final = jsPsych.data.get();
         // console.log(final.csv());
-        final.localSave('csv', data.subject_id + '_blTova_task_' + date.getFullYear() + month + day + '.csv'); // BACKEND MUST SAVE FINAL.CSV() AT THIS POINT
+        // final.localSave('csv', data.subject_id + '_blTova_task_' + date.getFullYear() + month + day + '.csv'); // BACKEND MUST SAVE FINAL.CSV() AT THIS POINT
         
         window.onbeforeunload = null; // disable the prevention
     }
