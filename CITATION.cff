@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Rioja"
+  given-names: "Kenneth"
+  orcid: "http://orcid.org/0000-0002-5177-0019"
+- family-names: "Denkinger"
+  given-names: "Sylvie"
+  orcid: "https://orcid.org/0000-0002-8649-3461"
+title: "Bavelierlab adapted ACE-X Test of Variables of Attention"
+version: 1.0
+doi: 10.5072/zenodo.1234569
+date-released: 2023-08-24
+url: "https://github.com/kennethrioja/bl_tova/tree/v1.0"

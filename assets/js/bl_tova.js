@@ -1,10 +1,9 @@
 // TITLE : Bavelier Lab 'Task of Variable Attention'-like in Javascript – practice & task (bl_tova.js)
-// VERSION : 0.1.0 (implemented for Naïma Gradi)
+// VERSION : 1.0.0 (implemented for Naïma Gradi)
 // AUTHOR : Kenneth Rioja
 // EMAIL : kenneth.rioja@unige.ch
-// DATE : 21.06.2023
-// GITLAB LINK : TOADD
-// GITHUB LINK (deprecated) : https://github.com/kennethrioja/bl_tova
+// DATE : 24.08.2023
+// GITHUB LINK : https://github.com/kennethrioja/bl_tova
 // NOTE FOR RESEARCHERS AND DEVS : Please carefully read the whole section below with global variables + the data dictionnary. If you have any comments, please send me an email. I would love to read from someone who got into this code ! Thanks and have fun ! 
 // NOTE FOR THE PERSON IN CHARGE OF THE BACKEND IMPLEMENTATION : I notified relevant points for you though comments having 'BACKEND' inside them. Please read them before implementing this code.
 
