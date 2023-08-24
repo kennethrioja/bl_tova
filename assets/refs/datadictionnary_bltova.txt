@@ -1,12 +1,19 @@
 author : Kenneth Rioja
-description : data dictionnary of variables from the bl_tova csv
+description : Data dictionnary of variables from the bl_tova csv
 
-variable_name
-	type
-	description
+<variable_name>
+	<type>
+	<description>
 ----------------------------------------------------------------
-success, timeout, failed_[image, audio, video]
-	https://www.jspsych.org/7.0/plugins/preload/#data-generated
+rt
+	int array
+	rt's from all reponses during the soa
+response
+	string array
+	array containing the keys pressed for each trial (restricted to space bar, see 'choices' in bl_tova.js)
+accuracy
+	string array
+	NA : used for 'survey' trial_type, see below
 trial_type
 	string
 	The name of the plugin used to run the trial (https://www.jspsych.org/7.0/overview/plugins/#data-collected-by-all-plugins)
@@ -22,32 +29,57 @@ internal_node_id
 real_trial_index
 	int
 	created manually - (find '*MODIFIED*' in jspsych.js), real trials are begining with 1, 0 are the pluggins – if the participant has done multiple practice blocks, then there should be a 1 and a 2 lying there, do not take it into account. During data cleaning, filter by block and you should have it all ordered by block (from 1 to n_trial).
-width, height, browser, browser_version, mobile, os, fullscreen, vsync_rate
+subject_id
+	string
+	Subject ID, whether taken from the URL or manually if `ask_for_id = true`
+study_id
+	string
+	Study ID, whether taken from the URL or manually if `ask_for_id = true`
+session_id
+	string
+	Session ID, whether taken from the URL or manually if `ask_for_id = true`
+presentation_time
+	int
+	Time in miliseconds elapsed between the onset of the stimulus i and the offset of the stimulus i
+soa
+	int
+	Stimulus onset asynchrony, time in miliseconds elapsed between the onset of the stimulus i and the onset of the stimulus i + 1. soa = presentation_time + reaction time (RT not present in the variables here, but you can compute it obviously). Varies between 250ms and 4100ms.
+monitorsize_inch
+	double
+	Screen diagonal size in inch, manually provided in the global variables or taken through calibration (that you must implement yourself).
+pxperdeg
+	int
+	Pixel per degree, manually provided in the global variables or taken through calibration (that you must implement yourself).
+stimulus_diagonal_px
+	double
+	Virtual size in pixels of the stimulus on screen, computed with monitorsize_inch and pxperdeg.
+stimulus_diagonal_cm
+	double
+	Physical size in cm of the stimulus on screen, computed with monitorsize_inch and pxperdeg.
+success, timeout, failed_images, failed_audio, failed_video
+	string array
+	NA : used for 'preload' and 'fullscreen' trial_type, see below
+width, height, browser, browser_version, mobile, os, fullscreen, vsync_rate, view_history
+	...
 	https://www.jspsych.org/7.2/plugins/browser-check/#data-generated
-rt
-	int array
-	rt's from all reponses during the soa
 stimulus
 	string
-	label of the stimulus ('squareup' or 'squaredown'), see 'stim_img' in js script
-response
-	string array
-	array containing the keys pressed for each trial (restricted to space bar, see 'choices' in bl_tova.js)
+	label of the stimulus ('shapeup' or 'shapedown'), see 'stimulus_label' in bl_tova.js
 block
 	string
-	block name : sa = sustained attention, ic = inhibitory control
+	block name : practice | sa = sustained attention | ic = inhibitory control, see 'block_type' in bl_tova.js
 condition
 	string
 	condition : Go = target, NoGo = non-target
-expected_key
-	string
-	expected key press : null = no press, ' ' = space bar
-expected_response
+position_is_top
 	int
-	expected response, mirroring the condition : 0 = expected to refrain, 1 = expected to press
+	position of the stimulus during presentation_time : 1 = stimulus image displayed at the top of the screen, 0 = stimulus image displayed at the bottom of the screen
 effective_response
 	int
-	response given by participant : 0 = refrained, 1 = pressed spacebar, 2 = pressed spacebar multiple times
+	participant's response : 0 = refrained, 1 = pressed spacebar, 2 = pressed spacebar multiple times
 correct
-	bool
-	whether the trial was correct (TRUE) or incorrect (FALSE)
+	int
+	whether the trial was correct (1) or incorrect (0)
+trial_accuracy
+	string
+	trial outcome (expected x effective) can have those values : "correct rejection", 'miss', "false alarm", 'hit'
