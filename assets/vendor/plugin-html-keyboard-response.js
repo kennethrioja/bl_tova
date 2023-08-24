@@ -125,11 +125,6 @@ var jsPsychHtmlKeyboardResponse = (function (jspsych) {
                     end_trial();
                 }
                 // correct go trial : if feedback_color = true and real trial, then change CSS to green or red depending on true or false response *MODIFIED*
-                if (display_element.querySelector("#shape")) {
-                    console.log("real trial");
-                } else {
-                    console.log("blabla");
-                }
                 if (feedback_color == true
                     && trial.trial_duration !== null) {
                     if (display_element.querySelector("#shape").className == 'up' // if did a response and stimulus' className is 'up'
