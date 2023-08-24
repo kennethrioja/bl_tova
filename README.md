@@ -1,3 +1,5 @@
+# ⚠️⚠️⚠️ DEPRECATED, PLEASE USE THIS VERSION : https://gitlab.unige.ch/brainandlearning/tova ⚠️⚠️⚠️
+
 [![DOI](https://sandbox.zenodo.org/badge/633319443.svg)](https://sandbox.zenodo.org/badge/latestdoi/633319443)
 
 <p align="center">
