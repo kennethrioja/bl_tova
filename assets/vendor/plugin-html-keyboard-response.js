@@ -125,6 +125,11 @@ var jsPsychHtmlKeyboardResponse = (function (jspsych) {
                     end_trial();
                 }
                 // correct go trial : if feedback_color = true and real trial, then change CSS to green or red depending on true or false response *MODIFIED*
+                if (display_element.querySelector("#shape")) {
+                    console.log("real trial");
+                } else {
+                    console.log("blabla");
+                }
                 if (feedback_color == true
                     && trial.trial_duration !== null) {
                     if (display_element.querySelector("#shape").className == 'up' // if did a response and stimulus' className is 'up'
@@ -137,7 +142,8 @@ var jsPsychHtmlKeyboardResponse = (function (jspsych) {
                     }
                 }
                 // when a response (correct or incorrect) is given strictly before 2000ms, the trial ends 2100ms after reponse. SOA becomes : RT + 2100ms *MODIFIED*
-                if (info.rt < 2000) {
+                if (info.rt < 2000 &&
+                    display_element.querySelector("#shape")) { // only on real trials, not feedback
                     this.jsPsych.pluginAPI.setTimeout(end_trial, 2100);
                 }
             };

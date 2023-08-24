@@ -15,8 +15,8 @@
 // BACKEND takes care of it though calibration and URL variables
 
 // 1. to get from calibration either by injecting data or retrieve in local storage
-// const   monitorsize = 13.3; // monitor diagonal in inch
-// const   pxperdeg = 52; // pixel per degree computed in calibration
+const   monitorsize = 13.3; // monitor diagonal in inch
+const   pxperdeg = 52; // pixel per degree computed in calibration, this value is coming from MacBook Pro 13.3 screen
 
 // 2. to get from URL or other method, PROLIFIC_PID, STUDY_ID and SESSION_ID to get from url, see get_subject_id variable – if not using it then change global variable ask_for_id to false
 
@@ -43,7 +43,8 @@ const   stim_diag_px = stim_width_px * Math.sqrt(2); // stimulus diagonal in px 
 const   pres_time = 250; // stimulus presentation time in ms
 const   soa = 4100; // duration in ms between the onset of two consecutive stimuli. Note : In the original ACE-X TOVA, they have a 2000ms response-window. To be alligned with them, when analysing data, be sure that responses after 2000ms are not counted and treated as anticipatory responses.
 // const isi = soa - pres_time; // inter stimulus interval, NOT USE IN THE CODE
-const   root_path = 'https://s3.amazonaws.com/BavLab/TOVA/'; // BACKEND TO MODIFY IF NEEDED
+const   root_path = './'; // BACKEND TO MODIFY IF NEEDED
+// const   root_path = 'https://s3.amazonaws.com/BavLab/TOVA/'; // BACKEND TO MODIFY IF NEEDED
 const   tova_up = `
                     <div class='up' id='shape'><img src='${root_path}assets/img/shape.png' style='width:${stim_width_px}px'></img></div>
                     `; // id='shape' is mandatory, without it it won't work, see plugin-html-keyboard-response.js
@@ -622,7 +623,7 @@ timeline.push({
         const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate().toString();
         const final = jsPsych.data.get();
         // console.log(final.csv());
-        // final.localSave('csv', data.subject_id + '_blTova_task_' + date.getFullYear() + month + day + '.csv'); // BACKEND MUST SAVE FINAL.CSV() AT THIS POINT
+        final.localSave('csv', data.subject_id + '_blTova_task_' + date.getFullYear() + month + day + '.csv'); // BACKEND MUST SAVE FINAL.CSV() AT THIS POINT
         
         window.onbeforeunload = null; // disable the prevention
     }
